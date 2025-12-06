@@ -1,41 +1,40 @@
 import pool from "../../../database/database.js";
 
-async function approve(req, res) {
+async function fetchstudent(req, res) {
   try {
-    const { registerno, token } = req.body;
+    const body = req.body || {};
+    const { token } = body;
 
-    // ✅ Validate input
-    if (!registerno) {
+    const { department, academic_year, status } = body;
+
+    // ----- Mandatory Static Filters -----
+    if (!department || !academic_year || status === undefined) {
       return res.status(400).json({
         success: false,
-        message: "Registration number is required",token
+        message: "department, academic_year, and status are required"
       });
     }
 
-    // ✅ Update student status and return only needed columns
-    const updateResult = await pool.query(
-      `UPDATE students 
-       SET status = $1 
-       WHERE registration_number = $2 
-       RETURNING id, registration_number, email, status`,
-      [true, registerno]
-    );
+    // ----- STATIC QUERY -----
+    const query = `
+      SELECT *
+      FROM students
+      WHERE department = $1
+        AND academic_year = $2
+        AND status = $3
+      ORDER BY name ASC
+    `;
 
-    // ✅ Check if student existed
-    if (updateResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No student found with this registration number",token
-      });
-    }
+    const values = [department, academic_year, status];
 
-    const updatedStudent = updateResult.rows[0];
+    const result = await pool.query(query, values);
 
     return res.status(200).json({
       success: true,
-      message: "Student approved successfully",
-      student: updatedStudent,
-      token, // optional if needed
+      message: result.rows.length ? "Students fetched successfully" : "No students found",
+      count: result.rows.length,
+      students: result.rows,
+      token
     });
 
   } catch (err) {
@@ -43,9 +42,10 @@ async function approve(req, res) {
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: err.message,token
+      error: err.message,
+      token
     });
   }
 }
 
-export default approve;
+export default fetchstudent;
