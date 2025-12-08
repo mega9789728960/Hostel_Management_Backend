@@ -2,48 +2,48 @@ import pool from "../../../database/database.js";
 
 async function fetchstudent(req, res) {
   try {
-    // Ensure req.body is always an object
     const body = req.body || {};
-    const { token, ...data } = body;
+    const { token } = body;
 
-    // Remove null or empty values
-    function cleanObject(obj) {
-      return Object.fromEntries(
-        Object.entries(obj).filter(([_, value]) => value !== null && value !== "")
-      );
+    const { department, academic_year, status } = body;
+
+    // ----- Mandatory Static Filters -----
+    if (!department || !academic_year || status === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "department, academic_year, and status are required"
+      });
     }
 
-    const cleanedObject = cleanObject(data);
+    // ----- STATIC QUERY -----
+    const query = `
+      SELECT *
+      FROM students
+      WHERE department = $1
+        AND academic_year = $2
+        AND status = $3
+      ORDER BY name ASC
+    `;
 
-    let query = "SELECT * FROM students";
-    const values = [];
-
-    // Add dynamic WHERE clause if there are any filters
-    if (Object.keys(cleanedObject).length > 0) {
-      const keys = Object.keys(cleanedObject);
-      const whereString = keys.map((key, i) => `${key} = $${i + 1}`).join(" AND ");
-      values.push(...Object.values(cleanedObject));
-      query += ` WHERE ${whereString}`;
-    }
-
-    query += " ORDER BY name ASC"; // optional: order by name
+    const values = [department, academic_year, status];
 
     const result = await pool.query(query, values);
-    const dataRows = result.rows;
 
     return res.status(200).json({
       success: true,
-      message: dataRows.length > 0 ? "Students fetched successfully" : "No students found",
-      count: dataRows.length,
-      students: dataRows,
-      token: token
+      message: result.rows.length ? "Students fetched successfully" : "No students found",
+      count: result.rows.length,
+      students: result.rows,
+      token
     });
+
   } catch (err) {
     console.error("Server Error:", err);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: err.message,token
+      error: err.message,
+      token
     });
   }
 }
