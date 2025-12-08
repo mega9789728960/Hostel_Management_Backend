@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Authentication Implementation Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        main {
+            padding: 40px 30px;
+        }
+        
+        section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            color: #555;
+            font-size: 1.1em;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        
+        p, li {
+            margin-bottom: 12px;
+            font-size: 1em;
+        }
+        
+        ul, ol {
+            margin-left: 25px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+        
+        .highlight {
+            background: #fffacd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        tr:hover {
+            background: #f0f0f0;
+        }
+        
+        .endpoint-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .endpoint-title {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        .method-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-right: 10px;
+        }
+        
+        .post {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .get {
+            background: #28a745;
+            color: white;
+        }
+        
+        .put {
+            background: #ffc107;
+            color: black;
+        }
+        
+        .flow-diagram {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .checklist {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .checklist li {
+            padding-left: 30px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            color: #666;
+        }
+        
+        .section-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Frontend Authentication Implementation Guide</h1>
+            <p>Complete JWT Token Refresh Mechanism Integration</p>
+        </header>
+        
+        <main>
+            <!-- Project Overview -->
+            <section>
+                <h2><span class="section-number">1</span>Project Overview</h2>
+                
+                <h3>📋 Technology Stack</h3>
+                <ul>
+                    <li><strong>Backend Framework:</strong> Express.js (Node.js)</li>
+                    <li><strong>Database:</strong> PostgreSQL</li>
+                    <li><strong>Authentication:</strong> JWT (JSON Web Tokens)</li>
+                    <li><strong>Security Libraries:</strong> bcrypt, jsonwebtoken, cookie-parser</li>
+                    <li><strong>Additional Tools:</strong> Axios for HTTP requests, CORS enabled</li>
+                </ul>
+                
+                <h3>👥 User Roles</h3>
+                <ul>
+                    <li><strong>Student:</strong> Regular user with access to student-specific features</li>
+                    <li><strong>Admin:</strong> Administrator with full system access</li>
+                </ul>
+                
+                <h3>📊 Main Features</h3>
+                <ul>
+                    <li>User authentication (login/register)</li>
+                    <li>Attendance tracking and management</li>
+                    <li>Complaint system</li>
+                    <li>Mess bill management and payment integration</li>
+                    <li>Announcement and notification system</li>
+                    <li>Department and promotion management</li>
+                </ul>
+            </section>
+            
+            <!-- Current Authentication Mechanism -->
+            <section>
+                <h2><span class="section-number">2</span>Current Backend Authentication Mechanism</h2>
+                
+                <h3>🔑 Token Details</h3>
+                <table>
+                    <tr>
+                        <th>Token Type</th>
+                        <th>Purpose</th>
+                        <th>Lifetime</th>
+                        <th>Storage</th>
+                        <th>Usage</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Auth Token</strong></td>
+                        <td>API authentication</td>
+                        <td>Short-lived (configurable)</td>
+                        <td>Response body</td>
+                        <td>All protected API requests</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Refresh Token</strong></td>
+                        <td>Generate new auth tokens</td>
+                        <td>Long-lived (configurable)</td>
+                        <td>HttpOnly Cookie</td>
+                        <td>Token refresh endpoint</td>
+                    </tr>
+                </table>
+                
+                <h3>🔄 Login Flow</h3>
+                <div class="flow-diagram">
+1. User submits credentials (email + password)
+   ↓
+2. Backend validates against database
+   ↓
+3. Password verified with bcrypt
+   ↓
+4. Two tokens generated:
+   - Auth Token (short-lived, in response body)
+   - Refresh Token (long-lived, in HttpOnly cookie)
+   ↓
+5. Refresh token saved in database
+   ↓
+6. Response returns:
+   {
+     "success": true,
+     "token": "eyJhbGc...",
+     "role": "student" or "admin",
+     "data": { user details }
+   }
+                </div>
+                
+                <h3>🎯 Backend Endpoints</h3>
+                
+                <div class="endpoint-card">
+                    <div><span class="method-badge post">POST</span><span class="endpoint-title">/studentslogin</span></div>
+                    <p><strong>Purpose:</strong> Student login endpoint</p>
+                    <p><strong>Request Body:</strong></p>
+                    <div class="code-block">{
+  "email": "student@example.com",
+  "password": "password123"
+}</div>
+                    <p><strong>Response:</strong></p>
+                    <div class="code-block">{
+  "success": true,
+  "message": "Student login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "role": "student",
+  "data": {
+    "id": 1,
+    "email": "student@example.com",
+    "name": "John Doe"
+  }
+}</div>
+                </div>
+                
+                <div class="endpoint-card">
+                    <div><span class="method-badge post">POST</span><span class="endpoint-title">/generateauthtokenforstudent</span></div>
+                    <p><strong>Purpose:</strong> Refresh auth token for students (uses refresh token from cookie)</p>
+                    <p><strong>Request:</strong> No body required (refresh token auto-sent via cookies)</p>
+                    <p><strong>Response:</strong></p>
+                    <div class="code-block">{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</div>
+                </div>
+                
+                <div class="endpoint-card">
+                    <div><span class="method-badge post">POST</span><span class="endpoint-title">/adminlogin</span></div>
+                    <p><strong>Purpose:</strong> Admin login endpoint</p>
+                    <p><strong>Request Body:</strong> Same as student login</p>
+                    <p><strong>Response:</strong> Same as student login with role: "admin"</p>
+                </div>
+                
+                <div class="endpoint-card">
+                    <div><span class="method-badge post">POST</span><span class="endpoint-title">/generateauthtokenforadmin</span></div>
+                    <p><strong>Purpose:</strong> Refresh auth token for admins</p>
+                    <p><strong>Request:</strong> No body required</p>
+                    <p><strong>Response:</strong> New auth token in JSON</p>
+                </div>
+                
+                <h3>🔐 Token Validation</h3>
+                <p>The backend validates tokens in two ways:</p>
+                <ul>
+                    <li>From request body: <span class="highlight">req.body.token</span></li>
+                    <li>From Authorization header: <span class="highlight">Authorization: Bearer &lt;token&gt;</span></li>
+                </ul>
+                <div class="info">
+                    <strong>ℹ️ Note:</strong> The backend currently supports both methods. It's recommended to use the Authorization header method as it's more secure and follows REST standards.
+                </div>
+            </section>
+            
+            <!-- Frontend Implementation Requirements -->
+            <section>
+                <h2><span class="section-number">3</span>Frontend Implementation Requirements</h2>
+                
+                <h3>3.1 Token Storage Strategy</h3>
+                <div class="warning">
+                    <strong>⚠️ Security Consideration:</strong> Never store auth tokens in localStorage for sensitive applications. Use in-memory storage with automatic refresh before expiration.
+                </div>
+                
+                <h4>Recommended Approach:</h4>
+                <ul>
+                    <li><strong>Auth Token:</strong> Keep in memory (volatile) - lost on page refresh, but secure</li>
+                    <li><strong>Refresh Token:</strong> Handled automatically by browser (HttpOnly cookie) - secure and persistent</li>
+                    <li><strong>User Data:</strong> Store in state management (Redux/Zustand/Context API) for quick access</li>
+                </ul>
+                
+                <h3>3.2 API Request Interceptor Pattern</h3>
+                <div class="info">
+                    <strong>ℹ️ Important:</strong> The frontend must implement an axios interceptor to:
+                    <ul>
+                        <li>Automatically attach auth token to requests</li>
+                        <li>Handle token expiration and refresh</li>
+                        <li>Retry failed requests with new token</li>
+                    </ul>
+                </div>
+                
+                <h3>3.3 Token Expiration Handling</h3>
+                <p>There are two strategies to handle token expiration:</p>
+                
+                <h4>Strategy 1: Reactive Refresh (Recommended)</h4>
+                <ul>
+                    <li>When API returns <span class="highlight">401 Unauthorized</span></li>
+                    <li>Call refresh endpoint to get new auth token</li>
+                    <li>Retry the original request</li>
+                    <li>If refresh fails, redirect to login</li>
+                </ul>
+                
+                <h4>Strategy 2: Proactive Refresh</h4>
+                <ul>
+                    <li>Decode JWT token to check expiration time</li>
+                    <li>Before token expires, automatically call refresh endpoint</li>
+                    <li>Update auth token in memory</li>
+                    <li>Provides better UX - no failed requests</li>
+                </ul>
+                
+                <div class="success">
+                    <strong>✓ Optimal Approach:</strong> Combine both strategies - proactively refresh most of the time, but handle reactive refresh as fallback for edge cases.
+                </div>
+                
+                <h3>3.4 Session Recovery on App Startup</h3>
+                <p>When user refreshes the page:</p>
+                <ol>
+                    <li>App mounts and initializes</li>
+                    <li>Check if refresh token exists in cookies (automatic by browser)</li>
+                    <li>Call <span class="highlight">/generateauthtokenforstudent</span> endpoint</li>
+                    <li>If successful, store new auth token and restore user session</li>
+                    <li>If failed, redirect to login page</li>
+                </ol>
+                
+                <h3>3.5 Protected Route Guard</h3>
+                <p>Implement a route guard/middleware that:</p>
+                <ul>
+                    <li>Checks if user is authenticated (has valid auth token)</li>
+                    <li>Verifies user role matches route requirements</li>
+                    <li>Redirects to login if not authenticated</li>
+                    <li>Shows 403 error if role doesn't match</li>
+                </ul>
+                
+                <h3>3.6 Logout Implementation</h3>
+                <p>On logout:</p>
+                <ol>
+                    <li>Clear auth token from memory/state</li>
+                    <li>Clear user data from state</li>
+                    <li>Browser automatically clears refresh token cookie (on next request, server can invalidate)</li>
+                    <li>Redirect to login page</li>
+                    <li>Optional: Call backend logout endpoint to invalidate refresh token</li>
+                </ol>
+                
+                <h3>3.7 Error Handling Scenarios</h3>
+                <table>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Status Code</th>
+                        <th>Frontend Action</th>
+                    </tr>
+                    <tr>
+                        <td>Auth token expired</td>
+                        <td>401</td>
+                        <td>Call refresh endpoint, retry request</td>
+                    </tr>
+                    <tr>
+                        <td>Refresh token expired</td>
+                        <td>401/403</td>
+                        <td>Clear tokens, redirect to login</td>
+                    </tr>
+                    <tr>
+                        <td>Invalid token</td>
+                        <td>401</td>
+                        <td>Clear tokens, redirect to login</td>
+                    </tr>
+                    <tr>
+                        <td>No token provided</td>
+                        <td>401</td>
+                        <td>Redirect to login</td>
+                    </tr>
+                    <tr>
+                        <td>Insufficient permissions</td>
+                        <td>403</td>
+                        <td>Show error message, redirect to home</td>
+                    </tr>
+                    <tr>
+                        <td>Network error during refresh</td>
+                        <td>Network</td>
+                        <td>Queue request, retry after connection restores</td>
+                    </tr>
+                </table>
+            </section>
+            
+            <!-- Implementation Code Examples -->
+            <section>
+                <h2><span class="section-number">4</span>Implementation Code Examples</h2>
+                
+                <h3>4.1 Axios Instance with Interceptors (React)</h3>
+                <p><strong>File: src/services/api.js</strong></p>
+                <div class="code-block">import axios from 'axios';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
+// Create axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true, // ✅ Important: Send cookies with requests
+});
+
+// Store auth token in memory
+let authToken = null;
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+// Subscribe to token refresh
+const onRefreshed = (token) => {
+  refreshSubscribers.forEach((callback) => callback(token));
+  refreshSubscribers = [];
+};
+
+const addRefreshSubscriber = (callback) => {
+  refreshSubscribers.push(callback);
+};
+
+// Request interceptor - attach auth token
+api.interceptors.request.use(
+  (config) => {
+    if (authToken) {
+      config.headers.Authorization = `Bearer ${authToken}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor - handle token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If 401 and not already retrying
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      if (!isRefreshing) {
+        isRefreshing = true;
+
+        try {
+          // Refresh the token
+          const { data } = await axios.post(
+            `${API_BASE_URL}/generateauthtokenforstudent`,
+            {},
+            { withCredentials: true }
+          );
+
+          authToken = data.token;
+          isRefreshing = false;
+          onRefreshed(authToken);
+
+          // Retry original request with new token
+          originalRequest.headers.Authorization = `Bearer ${authToken}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          isRefreshing = false;
+          authToken = null;
+          // Redirect to login
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      } else {
+        // If refresh is in progress, queue this request
+        return new Promise((resolve) => {
+          addRefreshSubscriber((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
+        });
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+// Export function to set auth token
+export const setAuthToken = (token) => {
+  authToken = token;
+};
+
+// Export function to clear auth token
+export const clearAuthToken = () => {
+  authToken = null;
+};
+
+export default api;
+                </div>
+                
+                <h3>4.2 Authentication Service/Hook (React)</h3>
+                <p><strong>File: src/hooks/useAuth.js</strong></p>
+                <div class="code-block">import { useState, useCallback, useEffect } from 'react';
+import api, { setAuthToken, clearAuthToken } from '../services/api';
+
+const useAuth = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Initialize auth on app mount
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        // Try to refresh token on app startup
+        const { data } = await api.post('/generateauthtokenforstudent');
+        setAuthToken(data.token);
+        // Optionally fetch user data here
+        setUser({ role: 'student' }); // Placeholder
+      } catch (err) {
+        // No valid refresh token, user needs to login
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  const login = useCallback(async (email, password, role = 'student') => {
+    setLoading(true);
+    setError(null);
+    try {
+      const endpoint = role === 'admin' ? '/adminlogin' : '/studentslogin';
+      const { data } = await api.post(endpoint, { email, password });
+      
+      setAuthToken(data.token);
+      setUser({
+        ...data.data,
+        role: data.role,
+      });
+      return data;
+    } catch (err) {
+      setError(err.response?.data?.error || 'Login failed');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      // Optional: Call backend logout endpoint
+      await api.post('/logout');
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      clearAuthToken();
+      setUser(null);
+    }
+  }, []);
+
+  const isAuthenticated = !!user;
+
+  return {
+    user,
+    loading,
+    error,
+    login,
+    logout,
+    isAuthenticated,
+  };
+};
+
+export default useAuth;
+                </div>
+                
+                <h3>4.3 Protected Route Component (React)</h3>
+                <p><strong>File: src/components/ProtectedRoute.jsx</strong></p>
+                <div class="code-block">import { Navigate } from 'react-router-dom';
+
+const ProtectedRoute = ({ 
+  component: Component, 
+  isAuthenticated, 
+  userRole, 
+  requiredRole,
+  loading 
+}) => {
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && userRole !== requiredRole) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <Component />;
+};
+
+export default ProtectedRoute;
+                </div>
+                
+                <h3>4.4 Context API Setup (Alternative to Redux)</h3>
+                <p><strong>File: src/context/AuthContext.jsx</strong></p>
+                <div class="code-block">import React, { createContext, useReducer, useCallback } from 'react';
+import api, { setAuthToken, clearAuthToken } from '../services/api';
+
+export const AuthContext = createContext();
+
+const initialState = {
+  user: null,
+  isAuthenticated: false,
+  loading: true,
+  error: null,
+  role: null,
+};
+
+const authReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'LOGIN_SUCCESS':
+      return {
+        ...state,
+        user: action.payload.data,
+        isAuthenticated: true,
+        role: action.payload.role,
+        error: null,
+        loading: false,
+      };
+    case 'LOGIN_ERROR':
+      return {
+        ...state,
+        error: action.payload,
+        loading: false,
+      };
+    case 'LOGOUT':
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        role: null,
+      };
+    default:
+      return state;
+  }
+};
+
+export const AuthProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+
+  const login = useCallback(async (email, password, role = 'student') => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      const endpoint = role === 'admin' ? '/adminlogin' : '/studentslogin';
+      const { data } = await api.post(endpoint, { email, password });
+      
+      setAuthToken(data.token);
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        payload: { data: data.data, role: data.role },
+      });
+      return data;
+    } catch (error) {
+      dispatch({
+        type: 'LOGIN_ERROR',
+        payload: error.response?.data?.error || 'Login failed',
+      });
+      throw error;
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await api.post('/logout').catch(() => {}); // Ignore errors
+    } finally {
+      clearAuthToken();
+      dispatch({ type: 'LOGOUT' });
+    }
+  }, []);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+                </div>
+                
+                <h3>4.5 Login Page Implementation</h3>
+                <p><strong>File: src/pages/LoginPage.jsx</strong></p>
+                <div class="code-block">import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
+
+const LoginPage = () => {
+  const navigate = useNavigate();
+  const { login, loading, error } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    role: 'student', // or 'admin'
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await login(formData.email, formData.password, formData.role);
+      // Redirect based on role
+      navigate(formData.role === 'admin' ? '/admin/dashboard' : '/student/dashboard');
+    } catch (err) {
+      // Error is handled by hook
+      console.error('Login error:', err);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="email"
+        name="email"
+        placeholder="Email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        value={formData.password}
+        onChange={handleChange}
+        required
+      />
+      <select name="role" value={formData.role} onChange={handleChange}>
+        <option value="student">Student</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button type="submit" disabled={loading}>
+        {loading ? 'Logging in...' : 'Login'}
+      </button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </form>
+  );
+};
+
+export default LoginPage;
+                </div>
+                
+                <h3>4.6 Token Expiration Handling with Proactive Refresh</h3>
+                <p><strong>File: src/services/tokenRefresh.js</strong></p>
+                <div class="code-block">import jwt_decode from 'jwt-decode';
+
+export const getTokenExpirationTime = (token) => {
+  try {
+    const decoded = jwt_decode(token);
+    return decoded.exp * 1000; // Convert to milliseconds
+  } catch (error) {
+    return null;
+  }
+};
+
+export const isTokenExpired = (token) => {
+  const expirationTime = getTokenExpirationTime(token);
+  if (!expirationTime) return true;
+  return Date.now() >= expirationTime;
+};
+
+export const getTimeUntilExpiration = (token) => {
+  const expirationTime = getTokenExpirationTime(token);
+  if (!expirationTime) return 0;
+  return expirationTime - Date.now();
+};
+
+// Setup proactive token refresh
+export const setupProactiveTokenRefresh = (api, setAuthToken) => {
+  let refreshTimeout;
+
+  return (token) => {
+    // Clear existing timeout
+    if (refreshTimeout) clearTimeout(refreshTimeout);
+
+    const timeUntilExpiration = getTimeUntilExpiration(token);
+    
+    // Refresh 5 minutes before expiration (or 1 minute if expires sooner)
+    const refreshDelay = Math.max(timeUntilExpiration - 5 * 60 * 1000, 60 * 1000);
+
+    if (refreshDelay > 0) {
+      refreshTimeout = setTimeout(async () => {
+        try {
+          const { data } = await api.post('/generateauthtokenforstudent');
+          setAuthToken(data.token);
+          // Recursively setup next refresh
+          setupProactiveTokenRefresh(api, setAuthToken)(data.token);
+        } catch (error) {
+          console.error('Proactive token refresh failed:', error);
+        }
+      }, refreshDelay);
+    }
+  };
+};
+                </div>
+            </section>
+            
+            <!-- Best Practices Section -->
+            <section>
+                <h2><span class="section-number">5</span>Security Best Practices</h2>
+                
+                <h3>✅ Do's</h3>
+                <ul class="checklist">
+                    <li>Always use HTTPS in production</li>
+                    <li>Store refresh tokens in HttpOnly cookies (automatic in this setup)</li>
+                    <li>Keep auth tokens in memory only (volatile storage)</li>
+                    <li>Attach auth token to Authorization header: <span class="highlight">Bearer &lt;token&gt;</span></li>
+                    <li>Implement both proactive and reactive token refresh</li>
+                    <li>Handle token expiration gracefully with user-friendly messages</li>
+                    <li>Validate token on server for every protected request</li>
+                    <li>Use secure, httpOnly, sameSite cookies for refresh tokens</li>
+                    <li>Implement CSRF protection if needed</li>
+                    <li>Set reasonable token expiration times (short for auth, longer for refresh)</li>
+                    <li>Clear all tokens on logout</li>
+                    <li>Validate user role on both frontend and backend</li>
+                </ul>
+                
+                <h3>❌ Don'ts</h3>
+                <ul>
+                    <li>Don't store auth tokens in localStorage (XSS vulnerable)</li>
+                    <li>Don't store auth tokens in regular cookies (CSRF vulnerable)</li>
+                    <li>Don't expose tokens in console logs or error messages</li>
+                    <li>Don't send sensitive data in query parameters</li>
+                    <li>Don't trust frontend role validation alone</li>
+                    <li>Don't hardcode API keys or secrets</li>
+                    <li>Don't forget to handle network errors during token refresh</li>
+                    <li>Don't implement token refresh without proper error handling</li>
+                    <li>Don't use weak secret keys for JWT signing</li>
+                    <li>Don't expose detailed error messages that reveal system information</li>
+                </ul>
+                
+                <h3>🔒 Additional Security Measures</h3>
+                <ul>
+                    <li><strong>CORS Configuration:</strong> Restrict to known domains in production</li>
+                    <li><strong>Rate Limiting:</strong> Implement rate limiting on authentication endpoints</li>
+                    <li><strong>Input Validation:</strong> Validate and sanitize all user inputs</li>
+                    <li><strong>SQL Injection Prevention:</strong> Use parameterized queries (already implemented in backend)</li>
+                    <li><strong>Password Security:</strong> Enforce strong passwords, use bcrypt hashing</li>
+                    <li><strong>Session Management:</strong> Implement session timeout and activity monitoring</li>
+                    <li><strong>Audit Logging:</strong> Log authentication attempts and security events</li>
+                    <li><strong>Two-Factor Authentication:</strong> Consider implementing 2FA for additional security</li>
+                </ul>
+            </section>
+            
+            <!-- Implementation Checklist -->
+            <section>
+                <h2><span class="section-number">6</span>Implementation Checklist</h2>
+                
+                <h3>Phase 1: Foundation Setup</h3>
+                <ul class="checklist">
+                    <li>Set up axios instance with base URL and credentials</li>
+                    <li>Create auth service/hook for state management</li>
+                    <li>Implement token storage mechanism (memory for auth, cookie for refresh)</li>
+                    <li>Configure CORS to allow credentials</li>
+                    <li>Test login endpoint manually</li>
+                </ul>
+                
+                <h3>Phase 2: Interceptors & Refresh Logic</h3>
+                <ul class="checklist">
+                    <li>Implement request interceptor to attach auth token</li>
+                    <li>Implement response interceptor for 401 handling</li>
+                    <li>Create token refresh endpoint integration</li>
+                    <li>Implement request queue during token refresh</li>
+                    <li>Test token refresh with expired tokens</li>
+                </ul>
+                
+                <h3>Phase 3: Route Protection</h3>
+                <ul class="checklist">
+                    <li>Create ProtectedRoute component</li>
+                    <li>Implement role-based access control (RBAC)</li>
+                    <li>Add unauthorized access handling</li>
+                    <li>Set up redirect logic for unauthenticated users</li>
+                    <li>Test protected routes with different roles</li>
+                </ul>
+                
+                <h3>Phase 4: Session Management</h3>
+                <ul class="checklist">
+                    <li>Implement session recovery on app startup</li>
+                    <li>Add proactive token refresh (optional but recommended)</li>
+                    <li>Implement logout with token clearing</li>
+                    <li>Test page refresh with active session</li>
+                    <li>Test logout functionality</li>
+                </ul>
+                
+                <h3>Phase 5: Error Handling & UX</h3>
+                <ul class="checklist">
+                    <li>Implement error handling for all auth endpoints</li>
+                    <li>Add user-friendly error messages</li>
+                    <li>Handle network errors during token refresh</li>
+                    <li>Implement loading states for auth operations</li>
+                    <li>Add retry logic for failed requests</li>
+                </ul>
+                
+                <h3>Phase 6: Testing & Security</h3>
+                <ul class="checklist">
+                    <li>Write unit tests for auth hooks/services</li>
+                    <li>Write integration tests for login/logout flow</li>
+                    <li>Test concurrent requests with token refresh</li>
+                    <li>Test token expiration scenarios</li>
+                    <li>Verify HTTPS in production</li>
+                    <li>Audit token handling for security issues</li>
+                    <li>Test with browser DevTools to verify token storage</li>
+                </ul>
+                
+                <h3>Phase 7: Deployment & Monitoring</h3>
+                <ul class="checklist">
+                    <li>Configure environment variables</li>
+                    <li>Set token lifetimes appropriately for production</li>
+                    <li>Implement logging for authentication events</li>
+                    <li>Monitor failed login attempts</li>
+                    <li>Set up alerting for suspicious auth patterns</li>
+                    <li>Test end-to-end authentication flow</li>
+                </ul>
+            </section>
+            
+            <!-- Environment Variables -->
+            <section>
+                <h2><span class="section-number">7</span>Environment Configuration</h2>
+                
+                <h3>Backend Environment Variables (Already Configured)</h3>
+                <div class="code-block">SECRET_KEY=your-secret-key-here
+TOKENLIFE=2h
+REFRESH_TOKEN_LIFE=7d
+
+# Database
+POSTGRES_USER=your_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=your_database
+
+# Email
+MAIL_FROM=noreply@example.com
+MAIL_PASSWORD=your_email_password
+
+# Payment
+CLIENT_ID=your_cashfree_client_id
+CLIENT_SECRET=your_cashfree_client_secret
+                </div>
+                
+                <h3>Frontend Environment Variables (.env)</h3>
+                <div class="code-block">REACT_APP_API_URL=http://localhost:3001
+REACT_APP_TOKEN_LIFETIME=2h
+REACT_APP_REFRESH_TIMEOUT=5m
+                </div>
+            </section>
+            
+            <!-- Common Issues and Solutions -->
+            <section>
+                <h2><span class="section-number">8</span>Troubleshooting Common Issues</h2>
+                
+                <h3>❌ Issue: Cookies Not Being Sent with Requests</h3>
+                <div class="warning">
+                    <strong>Problem:</strong> Refresh token cookie is not being sent to backend
+                </div>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Ensure axios is configured with <span class="highlight">withCredentials: true</span></li>
+                    <li>Verify backend CORS allows credentials: <span class="highlight">credentials: true</span></li>
+                    <li>Check that <span class="highlight">secure: true</span> is set on cookies (HTTPS only)</li>
+                    <li>For localhost development, use <span class="highlight">secure: false</span> temporarily</li>
+                </ul>
+                
+                <h3>❌ Issue: Token Refresh Fails During Concurrent Requests</h3>
+                <div class="warning">
+                    <strong>Problem:</strong> Multiple requests try to refresh token simultaneously
+                </div>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Implement request queue mechanism (see code example 4.1)</li>
+                    <li>Use <span class="highlight">isRefreshing</span> flag to prevent multiple refresh calls</li>
+                    <li>Queue subsequent requests until token refresh completes</li>
+                    <li>Execute queued requests with new token</li>
+                </ul>
+                
+                <h3>❌ Issue: Page Refresh Loses Authentication</h3>
+                <div class="warning">
+                    <strong>Problem:</strong> User is logged out after page refresh
+                </div>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Implement session recovery on app mount (see code example 4.2)</li>
+                    <li>Call refresh token endpoint when app initializes</li>
+                    <li>Store new auth token before rendering protected components</li>
+                    <li>Use loading state while checking authentication</li>
+                </ul>
+                
+                <h3>❌ Issue: 401 Errors in Console But Application Works</h3>
+                <div class="warning">
+                    <strong>Problem:</strong> Interceptor handles 401 but error still appears
+                </div>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>This is normal behavior - the interceptor catches and retries automatically</li>
+                    <li>You can suppress console errors for auth refresh attempts</li>
+                    <li>Only log errors that aren't automatically recovered</li>
+                </ul>
+                
+                <h3>❌ Issue: Token Expiration Time Not Matching</h3>
+                <div class="warning">
+                    <strong>Problem:</strong> Token expires before expected time
+                </div>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Decode JWT to verify expiration time: <span class="highlight">jwt_decode(token)</span></li>
+                    <li>Check server time synchronization (NTP)</li>
+                    <li>Verify TOKENLIFE environment variable on backend</li>
+                    <li>Consider clock skew between client and server</li>
+                </ul>
+                
+                <h3>❌ Issue: Users Getting Logged Out Unexpectedly</h3>
+                <div class="warning">
+                    <strong>Problem:</strong> Users are redirected to login without action
+                </div>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Check refresh token expiration on backend database</li>
+                    <li>Verify refresh token is being saved to database after login</li>
+                    <li>Implement proper error handling when refresh fails</li>
+                    <li>Add user-friendly session timeout notification</li>
+                    <li>Log failed refresh attempts for debugging</li>
+                </ul>
+                
+                <h3>❌ Issue: Infinite Redirect Loop to Login</h3>
+                <div class="warning">
+                    <strong>Problem:</strong> Application keeps redirecting to login page
+                </div>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Check that login page is not protected (should be public)</li>
+                    <li>Verify ProtectedRoute logic - don't protect login page</li>
+                    <li>Check network tab to see which requests are failing</li>
+                    <li>Ensure refresh endpoint is also public (doesn't require auth)</li>
+                </ul>
+                
+                <h3>❌ Issue: CORS Error: "credentials mode"</h3>
+                <div class="warning">
+                    <strong>Problem:</strong> <code>Cross-Origin Request Blocked</code> with credentials error
+                </div>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Backend CORS must include: <span class="highlight">credentials: true</span></li>
+                    <li>Backend CORS origin must be specific, not "*" when using credentials</li>
+                    <li>Axios must have: <span class="highlight">withCredentials: true</span></li>
+                    <li>All three must be aligned for cookies to work</li>
+                </ul>
+            </section>
+            
+            <!-- FAQ Section -->
+            <section>
+                <h2><span class="section-number">9</span>Frequently Asked Questions</h2>
+                
+                <h3>Q: Should I store the auth token in state or localStorage?</h3>
+                <p><strong>A:</strong> Store in memory/state only. This is more secure because:</p>
+                <ul>
+                    <li>localStorage is vulnerable to XSS attacks</li>
+                    <li>In-memory tokens are lost on refresh (forcing re-login)</li>
+                    <li>Browser automatically manages refresh token in cookies</li>
+                    <li>Trade-off: slightly worse UX but much better security</li>
+                </ul>
+                
+                <h3>Q: What if the refresh endpoint itself fails?</h3>
+                <p><strong>A:</strong> Force the user to login again:</p>
+                <ul>
+                    <li>Clear all stored tokens</li>
+                    <li>Clear user state</li>
+                    <li>Redirect to login page</li>
+                    <li>Show user-friendly message explaining session expired</li>
+                </ul>
+                
+                <h3>Q: How do I handle network errors during refresh?</h3>
+                <p><strong>A:</strong> Implement retry logic with exponential backoff:</p>
+                <ul>
+                    <li>Queue the request during network issues</li>
+                    <li>Retry after connection is restored</li>
+                    <li>Show offline indicator to user</li>
+                    <li>If retry ultimately fails, logout user</li>
+                </ul>
+                
+                <h3>Q: Can I use the same token for multiple users?</h3>
+                <p><strong>A:</strong> No, never share tokens. Each user must have their own token because:</p>
+                <ul>
+                    <li>Token contains user-specific information (id, email)</li>
+                    <li>Token is used to identify the user making the request</li>
+                    <li>Sharing tokens bypasses authentication</li>
+                    <li>Security audit would catch token sharing</li>
+                </ul>
+                
+                <h3>Q: Should I validate tokens on the frontend?</h3>
+                <p><strong>A:</strong> Yes, but never trust frontend validation alone:</p>
+                <ul>
+                    <li>Validate on frontend for UX (prevent unnecessary API calls)</li>
+                    <li>Always validate on backend (security critical)</li>
+                    <li>Frontend validation can be bypassed easily</li>
+                    <li>Backend is the source of truth for authentication</li>
+                </ul>
+                
+                <h3>Q: How long should auth and refresh tokens last?</h3>
+                <p><strong>A:</strong> Recommended timeframes:</p>
+                <ul>
+                    <li><strong>Auth Token:</strong> 15 minutes to 2 hours</li>
+                    <li><strong>Refresh Token:</strong> 7 days to 30 days</li>
+                    <li>Longer auth tokens: less refresh calls, but less secure</li>
+                    <li>Shorter auth tokens: more secure, but more API calls</li>
+                    <li>Adjust based on your security requirements</li>
+                </ul>
+                
+                <h3>Q: What happens if user changes password while logged in?</h3>
+                <p><strong>A:</strong> Implement token invalidation on password change:</p>
+                <ul>
+                    <li>Delete old refresh tokens from database</li>
+                    <li>Force user to login again</li>
+                    <li>This ensures only the user with new password can access</li>
+                    <li>Prevents unauthorized access if password was compromised</li>
+                </ul>
+                
+                <h3>Q: Do I need CSRF protection?</h3>
+                <p><strong>A:</strong> For JWT + HttpOnly cookies, CSRF protection helps:</p>
+                <ul>
+                    <li>Implement CSRF tokens if doing state-changing operations</li>
+                    <li>Verify origin/referer headers</li>
+                    <li>SameSite cookie attribute provides some CSRF protection</li>
+                    <li>For REST APIs, CSRF risk is lower than traditional forms</li>
+                </ul>
+                
+                <h3>Q: Can I implement single sign-out across tabs?</h3>
+                <p><strong>A:</strong> Yes, implement using storage events:</p>
+                <ul>
+                    <li>When user logs out in one tab, broadcast event to other tabs</li>
+                    <li>Use localStorage or sessionStorage for communication</li>
+                    <li>Other tabs detect logout event and clear tokens</li>
+                    <li>Example: <span class="highlight">localStorage.setItem('logout', Date.now())</span></li>
+                </ul>
+            </section>
+            
+            <!-- Quick Start Guide -->
+            <section>
+                <h2><span class="section-number">10</span>Quick Start Implementation Guide</h2>
+                
+                <h3>Step 1: Install Dependencies</h3>
+                <div class="code-block">npm install axios jwt-decode</div>
+                
+                <h3>Step 2: Create API Service (src/services/api.js)</h3>
+                <p>Copy code from section 4.1 (Axios Instance with Interceptors)</p>
+                
+                <h3>Step 3: Create Auth Hook (src/hooks/useAuth.js)</h3>
+                <p>Copy code from section 4.2 (Authentication Service/Hook)</p>
+                
+                <h3>Step 4: Create Protected Route (src/components/ProtectedRoute.jsx)</h3>
+                <p>Copy code from section 4.3 (Protected Route Component)</p>
+                
+                <h3>Step 5: Wrap App with Auth Context</h3>
+                <p><strong>File: src/App.jsx</strong></p>
+                <div class="code-block">import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import LoginPage from './pages/LoginPage';
+import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
+import useAuth from './hooks/useAuth';
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/dashboard"
+            element={<ProtectedRoute component={Dashboard} />}
+          />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
+                </div>
+                
+                <h3>Step 6: Configure Environment Variables</h3>
+                <p>Create <span class="highlight">.env</span> file in project root:</p>
+                <div class="code-block">REACT_APP_API_URL=http://localhost:3001</div>
+                
+                <h3>Step 7: Test the Implementation</h3>
+                <ol>
+                    <li>Start backend server: <span class="highlight">npm start</span> (backend)</li>
+                    <li>Start frontend: <span class="highlight">npm start</span> (frontend)</li>
+                    <li>Navigate to login page</li>
+                    <li>Enter valid credentials</li>
+                    <li>Verify you're redirected to dashboard</li>
+                    <li>Refresh page - you should remain logged in</li>
+                    <li>Check browser DevTools:
+                        <ul>
+                            <li>Cookies tab: Should see refreshToken HttpOnly cookie</li>
+                            <li>Network tab: Should see Authorization header in requests</li>
+                            <li>Application/Storage: Should NOT see authToken in localStorage</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+            
+            <!-- Architecture Diagram -->
+            <section>
+                <h2><span class="section-number">11</span>Authentication Flow Diagram</h2>
+                
+                <h3>Complete Authentication Lifecycle</h3>
+                <div class="flow-diagram">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         FRONTEND AUTHENTICATION FLOW                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1️⃣ INITIAL LOGIN
+   ┌──────────┐                                           ┌─────────────┐
+   │  Login   │─────────(email, password)─────────────────>│  Backend    │
+   │   Form   │                                           │   Login     │
+   └──────────┘                                           │ Endpoint    │
+                                                          └─────────────┘
+                                                                  │
+                                                                  ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ Backend Returns:                                                 │
+   │ - authToken (in response body)                                  │
+   │ - refreshToken (in HttpOnly cookie)                             │
+   │ - User data                                                     │
+   └──────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ Frontend:                                                        │
+   │ - Store authToken in memory                                     │
+   │ - Store user data in state/context                              │
+   │ - Browser auto-stores refreshToken in cookie                    │
+   └──────────────────────────────────────────────────────────────────┘
+
+2️⃣ AUTHENTICATED API REQUESTS
+   ┌──────────────┐
+   │  Component   │───────(API Request)───────>┌──────────────────────┐
+   │   (with UI)  │                            │ Interceptor:         │
+   └──────────────┘                            │ Attach auth token    │
+                                               │ in Authorization     │
+                                               │ header               │
+                                               └──────────────────────┘
+                                                        │
+                                                        ▼
+                                               ┌──────────────────────┐
+                                               │ Backend API          │
+                                               │ - Validate token     │
+                                               │ - Process request    │
+                                               │ - Return data        │
+                                               └──────────────────────┘
+                                                        │
+                                                        ▼
+   ┌──────────────┐                            ┌──────────────────────┐
+   │  Component   │<───────(Response)──────────│ Success Response     │
+   │   (Updates)  │                            │ (200 OK)             │
+   └──────────────┘                            └──────────────────────┘
+
+3️⃣ TOKEN EXPIRATION & REFRESH
+   ┌──────────────┐
+   │   API Call   │────────────────────────────>┌────────────────────┐
+   │ (with expired│                            │ Backend Validation  │
+   │  authToken)  │                            │ Token expired       │
+   └──────────────┘                            └────────────────────┘
+                                                        │
+                                                        ▼
+                                               ┌────────────────────┐
+                                               │ Error Response     │
+                                               │ (401 Unauthorized) │
+                                               └────────────────────┘
+                                                        │
+                                                        ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │ Interceptor (Response):                                      │
+   │ - Detect 401 status                                          │
+   │ - Check if isRefreshing = false                              │
+   │ - Call refresh endpoint with refreshToken from cookie        │
+   └──────────────────────────────────────────────────────────────┘
+                                                        │
+                                                        ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │ Refresh Token Endpoint:                                      │
+   │ POST /generateauthtokenforstudent                            │
+   │ (refreshToken sent via HttpOnly cookie)                      │
+   └──────────────────────────────────────────────────────────────┘
+                                                        │
+                                                        ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │ Backend:                                                     │
+   │ - Verify refreshToken from cookie                            │
+   │ - Check if exists in database                                │
+   │ - Generate new authToken                                     │
+   │ - Return new token                                           │
+   └──────────────────────────────────────────────────────────────┘
+                                                        │
+                                                        ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │ Frontend:                                                    │
+   │ - Store new authToken in memory                              │
+   │ - Notify queued requests                                     │
+   │ - Execute queued requests with new token                     │
+   │ - Retry original request                                     │
+   └──────────────────────────────────────────────────────────────┘
+
+4️⃣ LOGOUT
+   ┌──────────────┐
+   │  User Clicks │
+   │   Logout     │
+   └──────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────┐
+   │ Frontend:                                │
+   │ - Clear authToken from memory            │
+   │ - Clear user state                       │
+   │ - Call logout endpoint (optional)        │
+   │ - Redirect to login page                 │
+   └──────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────┐
+   │ Backend (Optional):                      │
+   │ - Invalidate refreshToken in database    │
+   │ - Clear cookie                           │
+   └──────────────────────────────────────────┘
+
+5️⃣ PAGE REFRESH / SESSION RECOVERY
+   ┌──────────────────────────────────────────┐
+   │ User Refreshes Page                      │
+   │ (authToken lost, refreshToken in cookie) │
+   └──────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────┐
+   │ App Component Mount:                     │
+   │ - Check if authenticated (empty)         │
+   │ - Call initializeAuth()                  │
+   └──────────────────────────────────────────┘
+           │
+           ▼
+   ┌──────────────────────────────────────────┐
+   │ POST /generateauthtokenforstudent        │
+   │ (RefreshToken in cookie auto-sent)       │
+   └──────────────────────────────────────────┘
+           │
+           ├─────────────────┬─────────────────┐
+           ▼                 ▼
+       ✅ Success        ❌ Failure
+       New authToken    Refresh token expired
+       │                │
+       ▼                ▼
+   Restore session   Redirect to login
+   Show dashboard    (Re-authentication needed)
+                </div>
+            </section>
+            
+            <!-- Key Takeaways -->
+            <section>
+                <h2><span class="section-number">12</span>Key Takeaways</h2>
+                
+                <div class="success">
+                    <h3>✅ Summary of Implementation Strategy</h3>
+                    <ul>
+                        <li><strong>Auth Token:</strong> Keep in memory only, attach to requests via Authorization header</li>
+                        <li><strong>Refresh Token:</strong> Stored in HttpOnly cookie by browser, managed automatically</li>
+                        <li><strong>Request Interceptor:</strong> Automatically attach auth token to all requests</li>
+                        <li><strong>Response Interceptor:</strong> Handle 401 errors by refreshing token and retrying</li>
+                        <li><strong>Session Recovery:</strong> On app startup, try to get new auth token using refresh token</li>
+                        <li><strong>Protected Routes:</strong> Guard routes based on authentication state and user role</li>
+                        <li><strong>Logout:</strong> Clear tokens and redirect to login</li>
+                    </ul>
+                </div>
+                
+                <div class="info">
+                    <h3>ℹ️ Most Important Rules</h3>
+                    <ul>
+                        <li>Never store auth tokens in localStorage or regular cookies</li>
+                        <li>Never trust frontend role validation - always verify on backend</li>
+                        <li>Handle token refresh errors gracefully - logout user if refresh fails</li>
+                        <li>Always use HTTPS in production</li>
+                        <li>Implement proper error handling for all auth scenarios</li>
+                        <li>Test authentication flow thoroughly before deployment</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- Additional Resources -->
+            <section>
+                <h2><span class="section-number">13</span>Additional Resources</h2>
+                
+                <h3>📚 Documentation Links</h3>
+                <ul>
+                    <li><strong>JWT Official:</strong> https://jwt.io/</li>
+                    <li><strong>JWT Best Practices:</strong> https://tools.ietf.org/html/rfc8949</li>
+                    <li><strong>OWASP Authentication:</strong> https://owasp.org/www-project-web-security-testing-guide/</li>
+                    <li><strong>Axios Documentation:</strong> https://axios-http.com/</li>
+                    <li><strong>React Hooks:</strong> https://react.dev/reference/react/hooks</li>
+                    <li><strong>HttpOnly Cookies:</strong> https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies</li>
+                </ul>
+                
+                <h3>🔧 Useful Tools</h3>
+                <ul>
+                    <li><strong>JWT Debugger:</strong> https://jwt.io/#debugger-io</li>
+                    <li><strong>Postman:</strong> API testing tool</li>
+                    <li><strong>Browser DevTools:</strong> Network tab, Application storage, Console</li>
+                    <li><strong>curl/httpie:</strong> Command-line HTTP tools</li>
+                </ul>
+                
+                <h3>🧪 Testing Strategies</h3>
+                <ul>
+                    <li>Unit tests for auth hooks using Jest and React Testing Library</li>
+                    <li>Integration tests for login/logout flow</li>
+                    <li>E2E tests using Cypress or Playwright</li>
+                    <li>Manual testing with expired tokens</li>
+                    <li>Network throttling to test refresh scenarios</li>
+                </ul>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2024 Frontend Authentication Implementation Guide</p>
+            <p>This guide covers JWT token refresh mechanism for secure frontend authentication</p>
+            <p><strong>Last Updated:</strong> December 2024</p>
+        </footer>
+    </div>
+</body>
+</html>

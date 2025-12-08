@@ -113,6 +113,8 @@ import showmessbilltoall from "../routers/admin/messbill/showmessbilltoall.js";
 import updateVerifiedStatusrouter from "../routers/admin/messbill/updateVerifiedStatus.js";
 
 import getmessbillstatus from "../routers/admin/messbill/getmessbillstatus.js";
+import generateauthtokenRouter from "../routers/generateauthtokenforstudent.js";
+import generateauthtokenforadminRouter from "../routers/generateauthtokenforadmin.js";
 
 
 
@@ -176,7 +178,8 @@ api.use(showmessbilltoall)
 api.use(updateVerifiedStatusrouter)
 
 api.use(getmessbillstatus)
-
+api.use(generateauthtokenRouter)
+api.use(generateauthtokenforadminRouter)
 api.post("/create-order1", async (req, res) => {
   try {
     const { student_id, student_name, student_email, student_phone, amount } = req.body;
@@ -219,9 +222,10 @@ api.post("/verify-payment", async (req, res) => {
 
 
 
+
 // ✅ Root route
 api.get("/", (req, res) => {
   res.json({ message: "API is running ✅" });
 });
 
-export default api
+api.listen(3001);
