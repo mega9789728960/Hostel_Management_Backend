@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const pool = new Pool({
-  user: 'postgres.fcwajthkxusymctcsmhx',
+  user: 'postgres.respjwchthtomabguzmg',
   host: 'aws-1-ap-southeast-1.pooler.supabase.com',
   database: 'postgres',
   password: "GsUWGZp7hAHqnepP", // keep your password
