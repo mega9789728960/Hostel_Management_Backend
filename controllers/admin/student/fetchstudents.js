@@ -3,11 +3,15 @@ import pool from "../../../database/database.js";
 async function fetchstudent(req, res) {
   try {
     const body = req.body || {};
-    const { token } = body;
 
-    const { department, academic_year, status } = body;
+    const {
+      department,
+      academic_year,
+      status,
+      page = 1,
+      limit = 10
+    } = body;
 
-    // ----- Mandatory Static Filters -----
     if (!department || !academic_year || status === undefined) {
       return res.status(400).json({
         success: false,
@@ -15,7 +19,8 @@ async function fetchstudent(req, res) {
       });
     }
 
-    // ----- STATIC QUERY -----
+    const offset = (page - 1) * limit;
+
     const query = `
       SELECT *
       FROM students
@@ -23,18 +28,19 @@ async function fetchstudent(req, res) {
         AND academic_year = $2
         AND status = $3
       ORDER BY name ASC
+      LIMIT $4 OFFSET $5
     `;
 
-    const values = [department, academic_year, status];
-
+    const values = [department, academic_year, status, limit, offset];
     const result = await pool.query(query, values);
 
     return res.status(200).json({
       success: true,
-      message: result.rows.length ? "Students fetched successfully" : "No students found",
-      count: result.rows.length,
-      students: result.rows,
-      token
+      page,
+      limit,
+      fetched: result.rows.length,
+      hasMore: result.rows.length === limit,
+      students: result.rows
     });
 
   } catch (err) {
@@ -42,8 +48,7 @@ async function fetchstudent(req, res) {
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: err.message,
-      token
+      error: err.message
     });
   }
 }
