@@ -1,51 +1,47 @@
 import pool from "../../../database/database.js";
 
-async function fetchstudent(req, res) {
+async function approveStudent(req, res) {
   try {
-    const body = req.body || {};
-    const { token } = body;
+    const { id } = req.params;
 
-    const { department, academic_year, status } = body;
-
-    // ----- Mandatory Static Filters -----
-    if (!department || !academic_year || status === undefined) {
+    if (!id) {
       return res.status(400).json({
         success: false,
-        message: "department, academic_year, and status are required"
+        message: "Student ID is required"
       });
     }
 
-    // ----- STATIC QUERY -----
+    // Update status to true for the given student ID
     const query = `
-      SELECT *
-      FROM students
-      WHERE department = $1
-        AND academic_year = $2
-        AND status = $3
-      ORDER BY name ASC
+      UPDATE students
+      SET status = true
+      WHERE id = $1
+      RETURNING *
     `;
 
-    const values = [department, academic_year, status];
+    const result = await pool.query(query, [id]);
 
-    const result = await pool.query(query, values);
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
 
     return res.status(200).json({
       success: true,
-      message: result.rows.length ? "Students fetched successfully" : "No students found",
-      count: result.rows.length,
-      students: result.rows,
-      token
+      message: "Student approved successfully",
+      student: result.rows[0]
     });
 
   } catch (err) {
-    console.error("Server Error:", err);
+    console.error("Error approving student:", err);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: err.message,
-      token
+      error: err.message
     });
   }
 }
 
-export default fetchstudent;
+export default approveStudent;
