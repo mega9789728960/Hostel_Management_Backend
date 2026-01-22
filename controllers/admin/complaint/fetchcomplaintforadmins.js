@@ -2,56 +2,155 @@ import pool from "../../../database/database.js";
 
 async function fetchcomplaintforadmins(req, res) {
   try {
-    console.log("Fetching complaints for admins...");
+    const {
+      token,
+      page = 1,
+      limit = 10,
+      status,
+      priority,
+      category,
+      resolved,
+      student_id,
+      from_date,
+      to_date,
+      search
+    } = req.body;
 
-    const { token, ...data } = req.body;
+    const offset = (page - 1) * limit;
+    const values = [];
+    let paramIndex = 1;
+    const conditions = [];
 
-    // Utility to remove null/empty values
-    const cleanObject = (obj) =>
-      Object.fromEntries(
-        Object.entries(obj).filter(([_, value]) => value !== null && value !== "")
-      );
+    // --- Dynamic Filtering ---
 
-    const filters = cleanObject(data);
-
-    if (Object.keys(filters).length === 0) {
-        const query1 = `SELECT * FROM complaints`;
-         const result1 = await pool.query(query1);
-
-         return res.json({
-      success: true,
-      count: result1.rowCount,
-      data: result1.rows,token
-    });
-      
+    // Filter by Status
+    if (status && status !== "all") {
+      conditions.push(`c.status = $${paramIndex++}`);
+      values.push(status);
     }
 
-    // Build WHERE clause dynamically
-    const keys = Object.keys(filters);
-    const values = Object.values(filters);
-    const whereClause = keys.map((key, i) => `${key} = $${i + 1}`).join(" AND ");
+    // Filter by Priority
+    if (priority && priority !== "all") {
+      conditions.push(`c.priority = $${paramIndex++}`);
+      values.push(priority);
+    }
 
-    const query = `SELECT * FROM complaints WHERE ${whereClause}`;
-    const result = await pool.query(query, values);
+    // Filter by Category
+    if (category && category !== "all") {
+      conditions.push(`c.category = $${paramIndex++}`);
+      values.push(category);
+    }
 
-    if (result.rowCount === 0) {
+    // Filter by Resolved Status (boolean)
+    if (resolved !== undefined && resolved !== "all") {
+      conditions.push(`c.resolved = $${paramIndex++}`);
+      values.push(String(resolved) === "true");
+    }
+
+    // Filter by Student ID
+    if (student_id) {
+      conditions.push(`c.student_id = $${paramIndex++}`);
+      values.push(student_id);
+    }
+
+    // Filter by Date Range (created_at)
+    if (from_date) {
+      conditions.push(`c.created_at >= $${paramIndex++}`);
+      values.push(from_date);
+    }
+    if (to_date) {
+      conditions.push(`c.created_at <= $${paramIndex++}`);
+      values.push(to_date);
+    }
+
+    // Search Functionality
+    // Searches in Complaint Title, Description, Student Name, or Registration Number
+    if (search && search.trim() !== "") {
+      conditions.push(`(
+        c.title ILIKE $${paramIndex} OR 
+        c.description ILIKE $${paramIndex} OR 
+        s.name ILIKE $${paramIndex} OR
+        s.registration_number ILIKE $${paramIndex}
+      )`);
+      values.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    // --- Queries ---
+
+    // 1. Count Total Records (for Pagination)
+    const countQuery = `
+      SELECT COUNT(*) 
+      FROM complaints c
+      JOIN students s ON c.student_id = s.id
+      ${whereClause}
+    `;
+
+    // 2. Fetch Data
+    const dataQuery = `
+      SELECT 
+        c.*, 
+        s.name as student_name, 
+        s.registration_number,
+        s.department,
+        s.room_number,
+        s.email as student_email
+      FROM complaints c
+      JOIN students s ON c.student_id = s.id
+      ${whereClause}
+      ORDER BY c.created_at DESC
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
+
+    // Add limit and offset to values for the data query
+    const dataValues = [...values, limit, offset];
+
+    // Execute queries in parallel
+    const [countResult, dataResult] = await Promise.all([
+      pool.query(countQuery, values),
+      pool.query(dataQuery, dataValues),
+    ]);
+
+    const totalRecords = parseInt(countResult.rows[0].count, 10);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    // --- Response ---
+
+    if (dataResult.rows.length === 0) {
       return res.json({
         success: false,
-        message: "No complaints found",token
+        message: "No complaints found matching criteria",
+        data: [],
+        pagination: {
+          total: 0,
+          totalPages: 0,
+          currentPage: parseInt(page),
+          limit: parseInt(limit)
+        },
+        token
       });
     }
 
     return res.json({
       success: true,
-      count: result.rowCount,
-      data: result.rows,token
+      data: dataResult.rows,
+      pagination: {
+        total: totalRecords,
+        totalPages: totalPages,
+        currentPage: parseInt(page),
+        limit: parseInt(limit),
+      },
+      token,
     });
 
   } catch (err) {
     console.error("Error fetching complaints for admins:", err);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",token
+      message: "Internal server error",
+      token: req.body?.token,
     });
   }
 }
