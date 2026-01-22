@@ -4,11 +4,13 @@ async function showattendance(req, res) {
   try {
     const {
       token,
+      // Optional Filters
       registration_number,
       department,
       academic_year,
       date,
       status,
+      // Pagination (Optional)
       page = 1,
       limit = 10
     } = req.body || {};

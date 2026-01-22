@@ -27,10 +27,26 @@ export const createMonthlyCalculation = async (req, res) => {
     } = req.body;
 
     // 🧩 Validation
-    if (!month_year || !Array.isArray(years_data) || years_data.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "month_year and non-empty years_data array are required" });
+    // 🧩 Validation
+    const requiredYears = [1, 2, 3, 4];
+    if (!month_year || !Array.isArray(years_data)) {
+      return res.status(400).json({ error: "month_year and years_data array are required" });
+    }
+
+    // Validate that all required years are present and have valid data
+    const existingYears = years_data.map(y => parseInt(y.year));
+    const missingYears = requiredYears.filter(y => !existingYears.includes(y));
+
+    if (missingYears.length > 0) {
+      return res.status(400).json({ error: `Missing data for years: ${missingYears.join(', ')}` });
+    }
+
+    // Validate structure of each year data
+    for (const data of years_data) {
+      if (!data.year || !data.total_students || !data.total_days ||
+        parseInt(data.total_students) < 0 || parseInt(data.total_days) < 0) {
+        return res.status(400).json({ error: `Invalid data for year ${data.year}. total_students and total_days are required.` });
+      }
     }
 
     // 1️⃣ Insert into monthly_base_costs
