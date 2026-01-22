@@ -26,26 +26,22 @@ dotenv.config();
 
 // Create express app
 const api = express();
-api.use(sanitizeInput)
-import webhook from "../routers/student/payment/webhook.js";
-api.use(webhook);
-
-
-
-api.use(express.json({ limit: "10mb" })); 
-api.use(express.urlencoded({ limit: "10mb", extended: true }));
-
-api.use(cookieParser());
-
 // ✅ Allow ALL origins + credentials
-
-
 api.use(
   cors({
     origin: true,   // reflect request origin
     credentials: true,
   })
 );
+
+import webhook from "../routers/student/payment/webhook.js";
+api.use(webhook);
+
+api.use(express.json({ limit: "10mb" }));
+api.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+api.use(cookieParser());
+api.use(sanitizeInput);
 
 
 
