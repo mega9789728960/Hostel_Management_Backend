@@ -7,7 +7,7 @@ const pool = new Pool({
   user: 'postgres.respjwchthtomabguzmg',
   host: 'aws-1-ap-southeast-1.pooler.supabase.com',
   database: 'postgres',
-  password: "GsUWGZp7hAHqnepP", // keep your password
+  password: "KQ1oXjMaLnZjs0QM", // keep your password
   port: 6543,
   ssl: { rejectUnauthorized: false },
   max: 10, // optional: max pool connections
