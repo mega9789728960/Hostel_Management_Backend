@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --secondary-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --method-get: #61affe;
+            --method-post: #49cc90;
+            --method-put: #fca130;
+            --method-delete: #f93e3e;
+            --method-use: #9012fe;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(to right, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            font-size: 1.8rem;
+        }
+
+        .endpoint-card {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .endpoint-card:hover {
+            transform: translateX(4px);
+        }
+
+        .endpoint-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            cursor: pointer;
+        }
+
+        .method {
+            font-weight: bold;
+            font-size: 0.85rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            color: #fff;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .method.post { background-color: var(--method-post); }
+        .method.get { background-color: var(--method-get); }
+        .method.put { background-color: var(--method-put); }
+        .method.delete { background-color: var(--method-delete); }
+        .method.use { background-color: var(--method-use); }
+
+        .path {
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            color: var(--text-primary);
+            flex-grow: 1;
+        }
+
+        .auth-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            background-color: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .details {
+            padding: 0 1.5rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #334155;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        code {
+            background: #0f172a;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>PG Management API Documentation</h1>
+        <p>Comprehensive list of endpoints for Student and Admin interfaces.</p>
+    </header>
+
+    <div class="section-title">
+        <span>🎓</span> Student Endpoints (Prefix: <code>/students</code>)
+    </div>
+
+    <!-- Account & Auth -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/register</span>
+            <span class="tag">Account</span>
+        </div>
+        <div class="details">Register a new student account. Body: <code>email</code>, <code>name</code>, etc.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/studentslogin</span>
+            <span class="tag">Auth</span>
+        </div>
+        <div class="details">Student login. Returns auth token/cookies.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/emailpush</span>
+            <span class="tag">Verification</span>
+        </div>
+        <div class="details">Initiate email verification process.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/sendcode</span>
+            <span class="tag">Verification</span>
+        </div>
+        <div class="details">Send verification code.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/emailverify</span>
+            <span class="tag">Verification</span>
+        </div>
+        <div class="details">Verify the email code.</div>
+    </div>
+
+     <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/forgotpasswordemailpush</span>
+            <span class="tag">Password</span>
+        </div>
+        <div class="details">Send forgot password email.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/forgotpasswordsendcode</span>
+            <span class="tag">Password</span>
+        </div>
+        <div class="details">Send forgot password verification code.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/veriycodeforgot</span>
+            <span class="tag">Password</span>
+        </div>
+        <div class="details">Verify forgot password code.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/changepassword</span>
+            <span class="tag">Password</span>
+        </div>
+        <div class="details">Change password.</div>
+    </div>
+
+    <!-- Attendance & Complaints -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/students/attendance</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Attendance</span>
+        </div>
+        <div class="details">Mark or view attendance.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/students/absent</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Attendance</span>
+        </div>
+        <div class="details">Mark absent.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/registercomplaints</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Complaints</span>
+        </div>
+        <div class="details">Register a new complaint.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method put">PUT</span>
+            <span class="path">/students/editcomplaints</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Complaints</span>
+        </div>
+        <div class="details">Edit an existing complaint.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/students/fetchcomplaintsforstudents</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Complaints</span>
+        </div>
+        <div class="details">Fetch student's complaints.</div>
+    </div>
+    
+    <!-- Notification & Info -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/students/fetchnotificationforstudents</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Notifications</span>
+        </div>
+        <div class="details">Get notifications.</div>
+    </div>
+    
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/students/dismissnotificationforstudent</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Notifications</span>
+        </div>
+        <div class="details">Dismiss a notification.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/students/fetchdepartments</span>
+            <span class="tag">Department</span>
+        </div>
+        <div class="details">List departments.</div>
+    </div>
+
+    <!-- Payment -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/create-order1</span>
+            <span class="tag">Payment</span>
+        </div>
+        <div class="details">Create a Cashfree order (V1).</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/students/create-order</span>
+            <span class="tag">Payment</span>
+        </div>
+        <div class="details">Create a Cashfree order (Standard).</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/verify-payment</span>
+            <span class="tag">Payment</span>
+        </div>
+        <div class="details">Verify Cashfree payment status.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/students/showmessbillbyid1</span>
+            <span class="tag">Payment</span>
+        </div>
+        <div class="details">Show mess bill by ID.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/students/generateauthtokenforstudent</span>
+            <span class="tag">Auth</span>
+        </div>
+        <div class="details">Generate auth token.</div>
+    </div>
+
+
+    <div class="section-title">
+        <span>👑</span> Admin Endpoints (Prefix: <code>/admin</code>)
+    </div>
+
+    <!-- Admin Auth -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/adminslogin</span>
+            <span class="tag">Auth</span>
+        </div>
+        <div class="details">Admin login.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/logout</span>
+            <span class="tag">Auth</span>
+        </div>
+        <div class="details">Logout.</div>
+    </div>
+    
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/generateauthtokenforadmin</span>
+            <span class="tag">Auth</span>
+        </div>
+        <div class="details">Generate admin auth token.</div>
+    </div>
+
+    <!-- Student Management -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/fetchstudents</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Students</span>
+        </div>
+        <div class="details">Fetch all students.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/approve</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Students</span>
+        </div>
+        <div class="details">Approve student registration.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/adminreject</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Students</span>
+        </div>
+        <div class="details">Reject student registration.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/studentupdate</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Students</span>
+        </div>
+        <div class="details">Update student information.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/editstudentsdetails</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Students</span>
+        </div>
+        <div class="details">Edit details.</div>
+    </div>
+
+    <!-- Complaints -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/fetchcomplaintforadmins</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Complaints</span>
+        </div>
+        <div class="details">Fetch all complaints.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/resolvecomplaints</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Complaints</span>
+        </div>
+        <div class="details">Mark complaint as resolved.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/complaintstatuschangeforadmin</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Complaints</span>
+        </div>
+        <div class="details">Change complaint status.</div>
+    </div>
+
+    <!-- Attendance -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/showattends</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Attendance</span>
+        </div>
+        <div class="details">Show attendance records.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/changeattendanceforadmin</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Attendance</span>
+        </div>
+        <div class="details">Modify attendance.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/exportattendance</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Attendance</span>
+        </div>
+        <div class="details">Export attendance data.</div>
+    </div>
+
+    <!-- Mess & Billing -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/create</span>
+            <span class="tag">Mess</span>
+        </div>
+        <div class="details">Create monthly calculation/bill.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/show</span>
+            <span class="tag">Mess</span>
+        </div>
+        <div class="details">Show monthly calculations.</div>
+    </div>
+    
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/update</span>
+            <span class="tag">Mess</span>
+        </div>
+        <div class="details">Update monthly calculation.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/upadatemessbill</span>
+            <span class="tag">Mess</span>
+        </div>
+        <div class="details">Update student mess bill.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/fetchstudentsmessbillnew</span>
+            <span class="tag">Mess</span>
+        </div>
+        <div class="details">Fetch bills (new).</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/showmessbilltoall</span>
+            <span class="tag">Mess</span>
+        </div>
+        <div class="details">Publish mess bill to all.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/update-verified-status</span>
+            <span class="tag">Mess</span>
+        </div>
+        <div class="details">Update verified status.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/admin/getmessbillstatus</span>
+            <span class="tag">Mess</span>
+        </div>
+        <div class="details">Get bill status.</div>
+    </div>
+
+    <!-- Management -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/adddepartments</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Department</span>
+        </div>
+        <div class="details">Add a department.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/editdepartment</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Department</span>
+        </div>
+        <div class="details">Edit a department.</div>
+    </div>
+    
+     <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/deletedepartment</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Department</span>
+        </div>
+        <div class="details">Delete a department.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/promotion</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Promotion</span>
+        </div>
+        <div class="details">Promote students (Semester).</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/pushannocement</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Announcement</span>
+        </div>
+        <div class="details">Push new announcement.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/fetchannocementforadmin</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Announcement</span>
+        </div>
+        <div class="details">Fetch announcements.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/editannouncementforadmin</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Announcement</span>
+        </div>
+        <div class="details">Edit announcement.</div>
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method use">USE</span>
+            <span class="path">/admin/deleteannounce</span>
+            <span class="auth-badge">🔒 Auth</span>
+            <span class="tag">Announcement</span>
+        </div>
+        <div class="details">Delete announcement.</div>
+    </div>
+
+     <div class="section-title">
+        <span>🌐</span> Public/Other
+    </div>
+
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="path">/webhook</span>
+            <span class="tag">Payment</span>
+        </div>
+        <div class="details">Payment Webhook listener.</div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -115,68 +115,66 @@ import generateauthtokenforadminRouter from "../routers/generateauthtokenforadmi
 
 
 // ✅ Use routers
-api.use(emailpushrouter);
-api.use(sendcoderouter);
-api.use(emailverifyrouter);
-api.use(registerrouter);
-api.use(fetchstudentrouter);
-api.use(approverouter);
-api.use(studentsupdaterouter);
-api.use(studentLoginRouter);
-api.use(adminLoginRouter);
-api.use(editstudentsdetailsrouter);
-api.use(attendancerouter);
-api.use(showattendancerouter);
-api.use(registercomplaintrouter);
-api.use(editstudentsdetailsrouter);
-api.use(editcomplaintrouter);
-api.use(fetchcomplaintforadminrouter);
-api.use(fetchcomplaintsforstudentsrouter);
-api.use(resolvecomplaintsforadmins);
-api.use(complaintstatuschangeforadminrouter);
-api.use(forgotpasswordemailpushrouter);
-api.use(forgotpasswordsendcoderouter);
-api.use(verifycodeforgotrouter);
-api.use(changepassowordrouter);
 
-api.use(absentrouter);
-api.use(adminrejectrouter);
-api.use(changeattendanceforadminrouter);
-api.use(adddepartmentsrouter);
-api.use(fetchdepartmentsrouter);
-api.use(editdepartmentrouter);
-api.use(promotionrouter);
-api.use(exportAttendancerouter);
-api.use(pushannocementrouter);
-api.use(fetchannocementrouter)
-api.use(deletedepartmentrouter);
+// 🎓 Student Routes
+api.use("/students", [
+  emailpushrouter,
+  sendcoderouter,
+  emailverifyrouter,
+  registerrouter,
+  studentLoginRouter,
+  forgotpasswordemailpushrouter,
+  forgotpasswordsendcoderouter,
+  verifycodeforgotrouter,
+  changepassowordrouter,
+  attendancerouter,
+  registercomplaintrouter,
+  editcomplaintrouter,
+  fetchcomplaintsforstudentsrouter,
+  absentrouter,
+  fetchNotificationForStudentsrouter,
+  dismissannouncementforstudentrouter,
+  createorderrouter,
+  showMessBillsByIdRouter,
+  generateauthtokenRouter,
+  fetchdepartmentsrouter
+]);
 
-api.use(fetchNotificationForStudentsrouter);
-api.use(editannouncementforadminrouter);
-api.use(dismissannouncementforstudentrouter);
-api.use(deleteannouncementrouter);
-api.use(logoutrouter);
-api.use(createorderrouter)
-api.use(messbillpush)
+// 👑 Admin Routes
+api.use("/admin", [
+  adminLoginRouter,
+  fetchstudentrouter,
+  approverouter,
+  studentsupdaterouter,
+  editstudentsdetailsrouter,
+  showattendancerouter,
+  fetchcomplaintforadminrouter,
+  resolvecomplaintsforadmins,
+  adminrejectrouter,
+  changeattendanceforadminrouter,
+  adddepartmentsrouter,
+  editdepartmentrouter,
+  promotionrouter,
+  exportAttendancerouter,
+  pushannocementrouter,
+  fetchannocementrouter,
+  editannouncementforadminrouter,
+  deletedepartmentrouter,
+  deleteannouncementrouter,
+  logoutrouter,
+  messbillpush,
+  messbillshow,
+  messbillupdate,
+  updatemessbill,
+  fetchstudentsmessbillnew,
+  showmessbilltoall,
+  updateVerifiedStatusrouter,
+  getmessbillstatus,
+  generateauthtokenforadminRouter
+]);
 
-api.use(messbillshow)
-
-
-api.use(updatemessbill)
-api.use(messbillupdate)
-
-
-api.use(showMessBillsByIdRouter)
-
-api.use(fetchstudentsmessbillnew)
-
-api.use(showmessbilltoall)
-api.use(updateVerifiedStatusrouter)
-
-api.use(getmessbillstatus)
-api.use(generateauthtokenRouter)
-api.use(generateauthtokenforadminRouter)
-api.post("/create-order1", async (req, res) => {
+// 💳 Order & Payment Routes
+api.post("/students/create-order1", async (req, res) => {
   try {
     const { student_id, student_name, student_email, student_phone, amount } = req.body;
     const orderId = generateOrderId();
@@ -201,13 +199,12 @@ api.post("/create-order1", async (req, res) => {
   }
 });
 
-// Verify payment
-api.post("/verify-payment", async (req, res) => {
+api.post("/students/verify-payment", async (req, res) => {
   try {
     const { orderId } = req.body;
     const response = await Cashfree.PGOrderFetchPayments("2023-08-01", orderId);
     const payments = response.data.payments || [];
-    const status = payments.some(p => p.status === "SUCCESS");
+    const status = payments.some((p) => p.status === "SUCCESS");
     res.json({ success: status, details: payments });
   } catch (error) {
     console.error(error.response?.data || error);
