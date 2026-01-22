@@ -69,7 +69,7 @@ import fetchcomplaintforadminrouter from "../routers/admin/complaint/fetchcompla
 import showattendancerouter from "../routers/admin/attendance/showattendance.js";
 import registercomplaintrouter from "../routers/student/complaints/registercomplaintrouter.js";
 import fetchcomplaintsforstudentsrouter from "../routers/student/complaints/fetchcomplaintsforstudentsrouter.js"
-import complaintstatuschangeforadminrouter from "../routers/admin/complaint/resolvecomplaintsforadmins.js";
+import complaintstatuschangeforadminrouter from "../routers/admin/complaint/complaintstatuschangeforadminrouter.js"; // Correct import
 import forgotpasswordemailpushrouter from "../routers/forgot_password/forgotpasswordemailpushrouter.js";
 import forgotpasswordsendcoderouter from "../routers/forgot_password/forgotpasswordsendcoderouter.js";
 import verifycodeforgotrouter from "../routers/forgot_password/verifycodeforgotrouter.js";
@@ -170,7 +170,8 @@ api.use("/admin", [
   showmessbilltoall,
   updateVerifiedStatusrouter,
   getmessbillstatus,
-  generateauthtokenforadminRouter
+  generateauthtokenforadminRouter,
+  complaintstatuschangeforadminrouter // Added this router to the admin middleware stack
 ]);
 
 // 💳 Order & Payment Routes
