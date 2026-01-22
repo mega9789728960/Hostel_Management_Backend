@@ -2,15 +2,13 @@ import pool from "../../../database/database.js";
 
 async function fetchstudent(req, res) {
   try {
-    const body = req.body || {};
-
     const {
       department,
       academic_year,
-      status,
+      status, // "all" | true | false
       page = 1,
       limit = 10
-    } = body;
+    } = req.body || {};
 
     if (!department || !academic_year || status === undefined) {
       return res.status(400).json({
@@ -21,17 +19,32 @@ async function fetchstudent(req, res) {
 
     const offset = (page - 1) * limit;
 
+    const conditions = [];
+    const values = [];
+    let idx = 1;
+
+    conditions.push(`department = $${idx++}`);
+    values.push(department);
+
+    conditions.push(`academic_year = $${idx++}`);
+    values.push(academic_year);
+
+    // ✅ apply status filter only if not "all"
+    if (status !== "all") {
+      conditions.push(`status = $${idx++}`);
+      values.push(status === true || status === "true");
+    }
+
     const query = `
       SELECT *
       FROM students
-      WHERE department = $1
-        AND academic_year = $2
-        AND status = $3
+      WHERE ${conditions.join(" AND ")}
       ORDER BY name ASC
-      LIMIT $4 OFFSET $5
+      LIMIT $${idx++} OFFSET $${idx}
     `;
 
-    const values = [department, academic_year, status, limit, offset];
+    values.push(limit, offset);
+
     const result = await pool.query(query, values);
 
     return res.status(200).json({
