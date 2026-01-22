@@ -2,10 +2,77 @@ import pool from "../../../database/database.js";
 
 async function showattendance(req, res) {
   try {
-    const { token, registration_number, department, academic_year, date, status } = req.body || {};
+    const {
+      token,
+      registration_number,
+      department,
+      academic_year,
+      date,
+      status,
+      page = 1,
+      limit = 10
+    } = req.body || {};
 
-    // ✅ Start from students table and LEFT JOIN attendance
-    let query = `
+    // Calculate offset
+    const offset = (page - 1) * limit;
+
+    // Base clauses
+    const joinConditions = ["a.student_id = s.id"];
+    const whereConditions = [];
+    let paramIndex = 1;
+    const values = [];
+
+    // 1. Build values and conditions for the main data query
+
+    // Note: We need to handle parameters carefully. 
+    // We'll rebuild the query parts to ensure parameter indices are correct.
+
+    // Date condition for JOIN
+    if (date && date.trim() !== "") {
+      joinConditions.push(`a.date = $${paramIndex++}`);
+      values.push(new Date(date).toISOString().split("T")[0]);
+    }
+
+    // Status condition for JOIN
+    if (status && status.trim() !== "" && status !== "all") {
+      joinConditions.push(`a.status = $${paramIndex++}`);
+      values.push(status);
+    }
+
+    // Department condition
+    if (department && department.trim() !== "") {
+      whereConditions.push(`s.department = $${paramIndex++}`);
+      values.push(department);
+    }
+
+    // Academic Year condition
+    if (academic_year && academic_year.trim() !== "") {
+      whereConditions.push(`s.academic_year = $${paramIndex++}`);
+      values.push(academic_year);
+    }
+
+    // Registration Number condition
+    if (registration_number && registration_number.trim() !== "") {
+      whereConditions.push(`s.registration_number = $${paramIndex++}`);
+      values.push(registration_number);
+    }
+
+    // Construct the JOIN and WHERE strings
+    const joinClause = `LEFT JOIN attendance a ON ${joinConditions.join(" AND ")}`;
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
+
+    // --- COUNT QUERY ---
+    // We need a separate count query using essentially the same conditions
+    // to tell the frontend the total number of matching records.
+    const countQuery = `
+      SELECT COUNT(*) 
+      FROM students s
+      ${joinClause}
+      ${whereClause}
+    `;
+
+    // --- DATA QUERY ---
+    const dataQuery = `
       SELECT 
         s.id AS student_id,
         s.name,
@@ -25,69 +92,40 @@ async function showattendance(req, res) {
         a.created_at AS attendance_created_at,
         a.updated_at AS attendance_updated_at
       FROM students s
+      ${joinClause}
+      ${whereClause}
+      ORDER BY s.name
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
 
-    // 🧩 Build dynamic JOIN conditionsnnode 
-    const joinConditions = ["a.student_id = s.id"];
-    const values = [];
-    let paramIndex = 1;
+    // Add limit and offset to values
+    const queryValues = [...values, limit, offset];
 
-    if (date && date.trim() !== "") {
-      joinConditions.push(`a.date = $${paramIndex++}`);
-      values.push(new Date(date).toISOString().split("T")[0]);
-    }
+    // Execute queries
+    // We can run them in parallel for performance
+    const [countResult, dataResult] = await Promise.all([
+      pool.query(countQuery, values),
+      pool.query(dataQuery, queryValues)
+    ]);
 
-    if (status && status.trim() !== "") {
-      joinConditions.push(`a.status = $${paramIndex++}`);
-      values.push(status);
-    }
-
-    // 🧠 Apply LEFT JOIN with dynamic conditions
-    query += ` LEFT JOIN attendance a ON ${joinConditions.join(" AND ")}`;
-
-    // 🎯 Student-based filters
-    const whereConditions = [];
-
-    if (department && department.trim() !== "") {
-      whereConditions.push(`s.department = $${paramIndex++}`);
-      values.push(department);
-    }
-
-    if (academic_year && academic_year.trim() !== "") {
-      whereConditions.push(`s.academic_year = $${paramIndex++}`);
-      values.push(academic_year);
-    }
-
-    if (registration_number && registration_number.trim() !== "") {
-      whereConditions.push(`s.registration_number = $${paramIndex++}`);
-      values.push(registration_number);
-    }
-
-    // 🧾 Apply WHERE clause only if needed
-    if (whereConditions.length > 0) {
-      query += ` WHERE ${whereConditions.join(" AND ")}`;
-    }
-
-    // 🗂️ Sort results
-    query += ` ORDER BY s.name;`;
-
-    console.log("🧩 Final Query:", query);
-    console.log("📦 Values:", values);
-
-    // 🚀 Execute query
-    const result = await pool.query(query, values);
+    const totalRecords = parseInt(countResult.rows[0].count, 10);
+    const rows = dataResult.rows;
 
     // 📤 Send response
     return res.json({
       success: true,
-      data: result.rows,
+      data: rows,
       token,
-      message: result.rows.length === 0 ? "No attendance records found" : undefined,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total: totalRecords,
+      totalPages: Math.ceil(totalRecords / limit),
+      message: rows.length === 0 ? "No attendance records found" : undefined,
     });
 
   } catch (err) {
     console.error("❌ Error fetching attendance:", err);
-    return res.status(500).json({ success: false, error: "Server error", token });
+    return res.status(500).json({ success: false, error: "Server error", token: req.body?.token });
   }
 }
 
