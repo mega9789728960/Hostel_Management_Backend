@@ -2,43 +2,47 @@ import pool from "../../../database/database.js";
 
 async function adminreject(req, res) {
   try {
-    const { registerno, token, reason } = req.body;
+    const { id } = req.params;
+    const { reason, token } = req.body;
 
     // ✅ Validate input
-    if (!registerno) {
+    if (!id) {
       return res.status(400).json({
         success: false,
-        message: "Registration number is required",token
+        message: "Student ID is required",
+        token
       });
     }
 
     if (!reason) {
       return res.status(400).json({
         success: false,
-        message: "Rejection reason is required",token
+        message: "Rejection reason is required",
+        token
       });
     }
 
-    // ✅ Update student status
+    // ✅ Update student status using ID
     const updateResult = await pool.query(
       `UPDATE students 
        SET status = $1 
-       WHERE registration_number = $2 
+       WHERE id = $2 
        RETURNING id, registration_number, email, status`,
-      [false, registerno]
+      [false, id]
     );
 
     // ✅ Check if student exists
     if (updateResult.rowCount === 0) {
       return res.status(404).json({
         success: false,
-        message: "No student found with this registration number",token
+        message: "No student found with this ID",
+        token
       });
     }
 
     const updatedStudent = updateResult.rows[0];
 
-    // ✅ Insert rejection reason after confirming student exists
+    // ✅ Insert rejection reason
     await pool.query(
       `INSERT INTO rejection_reasons (student_id, reason) VALUES ($1, $2)`,
       [updatedStudent.id, reason]
@@ -48,7 +52,7 @@ async function adminreject(req, res) {
       success: true,
       message: "Student rejected successfully",
       student: updatedStudent,
-      token, // optional if needed
+      token,
     });
 
   } catch (err) {
@@ -56,7 +60,8 @@ async function adminreject(req, res) {
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: err.message,token
+      error: err.message,
+      token
     });
   }
 }
