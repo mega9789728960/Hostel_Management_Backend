@@ -44,9 +44,7 @@ export async function studentLoginController(req, res) {
     // Save refresh token
     await pool.query(
       `INSERT INTO refreshtokens (user_id, tokens, expires_at,role)
-       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days','student')
-       ON CONFLICT (user_id)
-       DO UPDATE SET tokens = EXCLUDED.tokens, expires_at = EXCLUDED.expires_at`,
+       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days','student')`,
       [user.id, refreshToken]
     );
 
