@@ -20,8 +20,8 @@ async function logout(req, res) {
 
     // 3️⃣ Delete refresh token from DB and return deleted ID(s)
     const result = await pool.query(
-      `DELETE FROM refreshtokens WHERE user_id = $1 AND tokens = $2 RETURNING id`,
-      [decoded.id,refreshToken]
+      `DELETE FROM admin_sessions WHERE admin_id = $1 AND token = $2 RETURNING admin_id AS id`,
+      [decoded.id, refreshToken]
     );
 
     if (result.rowCount === 0) {

@@ -13,10 +13,10 @@ export async function adminLoginController(req, res) {
     }
 
     // Check if admin exists
-   const result = await pool.query(
-  "SELECT id, email, password FROM admins WHERE email = $1",
-  [email]
-);
+    const result = await pool.query(
+      "SELECT id, email, password FROM admins WHERE email = $1",
+      [email]
+    );
 
     const user = result.rows[0];
 
@@ -50,24 +50,24 @@ export async function adminLoginController(req, res) {
 
     // Save refresh token
     await pool.query(
-      `INSERT INTO refreshtokens (user_id, tokens, expires_at)
+      `INSERT INTO admin_sessions (admin_id, token, expires_at)
        VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days')
-       ON CONFLICT (user_id)
-       DO UPDATE SET tokens = EXCLUDED.tokens, expires_at = EXCLUDED.expires_at`,
+       ON CONFLICT (admin_id)
+       DO UPDATE SET token = EXCLUDED.token, expires_at = EXCLUDED.expires_at`,
       [user.id, refreshToken]
     );
 
-    const maxAge = Number(process.env.REFRESH_TOKEN_LIFE[0] ) * 24 * 60 * 60 * 1000;
+    const maxAge = Number(process.env.REFRESH_TOKEN_LIFE[0]) * 24 * 60 * 60 * 1000;
 
     // Store in cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure:true,
+      secure: true,
       sameSite: "none",
       maxAge: maxAge,
     });
 
-    const { password:password1, ...userData } = user;
+    const { password: password1, ...userData } = user;
 
 
     // ✅ No fetching students
