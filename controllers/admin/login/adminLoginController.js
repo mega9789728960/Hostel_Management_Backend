@@ -50,10 +50,10 @@ export async function adminLoginController(req, res) {
 
     // Save refresh token
     await pool.query(
-      `INSERT INTO admin_sessions (admin_id, token, expires_at)
-       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days')
-       ON CONFLICT (admin_id)
-       DO UPDATE SET token = EXCLUDED.token, expires_at = EXCLUDED.expires_at`,
+      `INSERT INTO refreshtokens (user_id, tokens, expires_at, role)
+       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days', 'admin')
+       ON CONFLICT (user_id, role)
+       DO UPDATE SET tokens = EXCLUDED.tokens, expires_at = EXCLUDED.expires_at`,
       [user.id, refreshToken]
     );
 
