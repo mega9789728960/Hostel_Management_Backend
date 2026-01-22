@@ -4,7 +4,13 @@ export const fetchMessBills = async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const { month_year, department, academic_year } = req.body;
+    const {
+      month_year,
+      department,
+      academic_year,
+      page = 1,
+      limit = 10
+    } = req.body;
 
     // 🚫 Mandatory fields validation
     if (!month_year || !department || !academic_year) {
@@ -13,8 +19,32 @@ export const fetchMessBills = async (req, res) => {
       });
     }
 
-    // 🧠 Updated Query — includes veg/non-veg extra cost logic
-    const query = `
+    // Calculate offset
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const limitVal = parseInt(limit);
+
+    // Common WHERE clause conditions
+    const whereClause = `
+      WHERE mbc.month_year = $1
+      AND s.department = $2
+      AND s.academic_year = $3
+    `;
+
+    // 🔢 Count Query
+    const countQuery = `
+      SELECT COUNT(*) 
+      FROM monthly_base_costs mbc
+      JOIN monthly_year_data myd ON myd.monthly_base_id = mbc.id
+      JOIN students s ON s.academic_year::integer = myd.year
+      LEFT JOIN mess_bill_for_students mbfs 
+        ON mbfs.monthly_year_data_id = myd.id
+        AND mbfs.student_id = s.id
+        AND mbfs.monthly_base_cost_id = mbc.id
+      ${whereClause}
+    `;
+
+    // 🧠 Data Query — includes veg/non-veg extra cost logic
+    const dataQuery = `
       SELECT 
         s.id AS student_id,
         s.name AS student_name,
@@ -70,20 +100,32 @@ export const fetchMessBills = async (req, res) => {
         AND mbfs.student_id = s.id
         AND mbfs.monthly_base_cost_id = mbc.id
 
-      WHERE mbc.month_year = $1
-        AND s.department = $2
-        AND s.academic_year = $3
+      ${whereClause}
 
-      ORDER BY s.registration_number;
+      ORDER BY s.registration_number
+      LIMIT $4 OFFSET $5
     `;
 
     const values = [month_year, department, academic_year];
-    const result = await client.query(query, values);
 
-    if (result.rows.length === 0) {
+    // Execute queries in parallel
+    const [countResult, dataResult] = await Promise.all([
+      client.query(countQuery, values),
+      client.query(dataQuery, [...values, limitVal, offset])
+    ]);
+
+    const totalRecords = parseInt(countResult.rows[0].count, 10);
+    const rows = dataResult.rows;
+
+    if (totalRecords === 0) {
       return res.status(404).json({
         message: "No records found for the given filters.",
-        filters: { month_year, department, academic_year }
+        filters: { month_year, department, academic_year },
+        data: [],
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: 0,
+        totalPages: 0
       });
     }
 
@@ -91,8 +133,12 @@ export const fetchMessBills = async (req, res) => {
     res.status(200).json({
       message: "Mess bill data fetched successfully.",
       filters: { month_year, department, academic_year },
-      count: result.rows.length,
-      data: result.rows
+      count: rows.length,
+      data: rows,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total: totalRecords,
+      totalPages: Math.ceil(totalRecords / limitVal)
     });
 
   } catch (error) {
