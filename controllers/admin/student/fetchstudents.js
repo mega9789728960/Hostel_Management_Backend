@@ -10,35 +10,38 @@ async function fetchstudent(req, res) {
       limit = 10
     } = req.body || {};
 
-    if (!department || !academic_year || status === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "department, academic_year, and status are required"
-      });
-    }
-
+    // Calculate offset for pagination
     const offset = (page - 1) * limit;
 
     const conditions = [];
     const values = [];
     let idx = 1;
 
-    conditions.push(`department = $${idx++}`);
-    values.push(department);
+    // Optional: Filter by department if provided
+    if (department) {
+      conditions.push(`department = $${idx++}`);
+      values.push(department);
+    }
 
-    conditions.push(`academic_year = $${idx++}`);
-    values.push(academic_year);
+    // Optional: Filter by academic_year if provided
+    if (academic_year) {
+      conditions.push(`academic_year = $${idx++}`);
+      values.push(academic_year);
+    }
 
-    // ✅ apply status filter only if not "all"
-    if (status !== "all") {
+    // Optional: Filter by status if provided and not "all"
+    if (status !== undefined && status !== null && status !== "all") {
       conditions.push(`status = $${idx++}`);
       values.push(status === true || status === "true");
     }
 
+    // Construct the WHERE clause
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
     const query = `
       SELECT *
       FROM students
-      WHERE ${conditions.join(" AND ")}
+      ${whereClause}
       ORDER BY name ASC
       LIMIT $${idx++} OFFSET $${idx}
     `;
