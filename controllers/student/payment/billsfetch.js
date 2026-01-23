@@ -1,16 +1,28 @@
 import pool from '../../../database/database.js';
 
 const showPaidMessBillsByStudentId = async (req, res) => {
-  const client = await pool.connect();
-
   try {
-    const { student_id } = req.body; // or req.query for GET requests
+    const {
+      student_id,
+      page = 1,
+      limit = 10
+    } = req.body; // or req.query for GET requests
 
     if (!student_id) {
       return res.status(400).json({ error: "student_id is required" });
     }
 
-    const query = `
+    const offset = (page - 1) * limit;
+
+    const countQuery = `
+      SELECT COUNT(*) 
+      FROM mess_bill_for_students mb
+      LEFT JOIN monthly_base_costs mbc
+        ON mb.monthly_base_cost_id = mbc.id
+      WHERE mb.student_id = $1 
+    `;
+
+    const dataQuery = `
       SELECT 
         mb.id AS mess_bill_id,
         mb.student_id,
@@ -48,25 +60,30 @@ const showPaidMessBillsByStudentId = async (req, res) => {
       LEFT JOIN monthly_base_costs mbc
         ON mb.monthly_base_cost_id = mbc.id
       WHERE mb.student_id = $1 
-      ORDER BY mbc.month_year DESC NULLS LAST;
+      ORDER BY mbc.month_year DESC NULLS LAST
+      LIMIT $2 OFFSET $3;
     `;
 
-    const result = await client.query(query, [student_id]);
+    const [countResult, dataResult] = await Promise.all([
+      pool.query(countQuery, [student_id]),
+      pool.query(dataQuery, [student_id, limit, offset])
+    ]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "No paid mess bills found for this student." });
-    }
+    const totalRecords = parseInt(countResult.rows[0].count, 10);
+    const rows = dataResult.rows;
 
     res.json({
       success: true,
-      message: "Paid mess bills fetched successfully",
-      data: result.rows,
+      message: rows.length === 0 ? "No paid mess bills found for this student." : "Paid mess bills fetched successfully",
+      data: rows,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total: totalRecords,
+      totalPages: Math.ceil(totalRecords / limit),
     });
   } catch (error) {
     console.error("Error fetching mess bills:", error);
     res.status(500).json({ error: "Failed to fetch paid mess bills" });
-  } finally {
-    client.release();
   }
 };
 
