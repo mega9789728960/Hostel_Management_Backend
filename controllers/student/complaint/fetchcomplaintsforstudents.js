@@ -1,7 +1,10 @@
 import pool from "../../../database/database.js";
 
 async function fetchcomplaintsforstudents(req, res) {
-  const { id ,token} = req.body;
+  let { id, token } = req.body;
+  if (!id && req.user) {
+    id = req.user.id;
+  }
 
   try {
     const result = await pool.query(
@@ -12,12 +15,13 @@ async function fetchcomplaintsforstudents(req, res) {
     console.log(result);
 
     return res.json({
-      success: result.rows && result.rows.length > 0,
-      data: result.rows || [],token
+      success: true,
+      data: result.rows || [],
+      token
     });
   } catch (error) {
     console.error("Error fetching complaints:", error);
-    return res.status(500).json({ success: false, message: "Server error",token });
+    return res.status(500).json({ success: false, message: "Server error", token });
   }
 }
 
