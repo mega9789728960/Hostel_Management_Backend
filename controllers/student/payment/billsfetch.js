@@ -22,10 +22,14 @@ const showPaidMessBillsByStudentId = async (req, res) => {
     let paramCounter = 2;
 
     if (status) {
-      // Handle "unpaid" specifically to include NULLs if that's the logic, 
-      // otherwise simple ILIKE. Assuming flexible status check.
-      if (status.toLowerCase() === 'unpaid') {
+      const s = status.toLowerCase();
+      // Handle "unpaid" specifically to include NULLs
+      if (s === 'unpaid') {
         whereConditions.push(`(mb.status ILIKE 'unpaid' OR mb.status IS NULL)`);
+      }
+      // Handle "paid" to include "success" (common payment gateway status)
+      else if (s === 'paid') {
+        whereConditions.push(`(mb.status ILIKE 'paid' OR mb.status ILIKE 'success')`);
       } else {
         whereConditions.push(`mb.status ILIKE $${paramCounter}`);
         queryParams.push(status);
