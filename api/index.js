@@ -89,6 +89,7 @@ import deletedepartmentrouter from "../routers/admin/department/deletedepartment
 import fetchNotificationForStudentsrouter from "../routers/student/notification/fetchNotificationForStudentsrouter.js";
 import dismissannouncementforstudentrouter from "../routers/student/notification/dismissnotification.js";
 import deleteannouncementrouter from "../routers/admin/announcement/deleteannouncementrouter.js";
+import statsrouter from "../routers/student/profile/statsrouter.js";
 import logoutrouter from "../routers/admin/logout/logout.js";
 
 import createorderrouter from "../routers/student/payment/createorder.js";
@@ -137,7 +138,9 @@ api.use("/students", [
   createorderrouter,
   showMessBillsByIdRouter,
   generateauthtokenRouter,
-  fetchdepartmentsrouter
+  generateauthtokenRouter,
+  fetchdepartmentsrouter,
+  statsrouter
 ]);
 
 // 👑 Admin Routes
