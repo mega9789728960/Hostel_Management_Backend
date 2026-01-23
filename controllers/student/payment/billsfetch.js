@@ -5,7 +5,10 @@ const showPaidMessBillsByStudentId = async (req, res) => {
     const {
       student_id,
       page = 1,
-      limit = 10
+      limit = 10,
+      status,
+      year,
+      month
     } = req.body; // or req.query for GET requests
 
     if (!student_id) {
@@ -14,12 +17,45 @@ const showPaidMessBillsByStudentId = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
+    let whereConditions = [`mb.student_id = $1`];
+    let queryParams = [student_id];
+    let paramCounter = 2;
+
+    if (status) {
+      // Handle "unpaid" specifically to include NULLs if that's the logic, 
+      // otherwise simple ILIKE. Assuming flexible status check.
+      if (status.toLowerCase() === 'unpaid') {
+        whereConditions.push(`(mb.status ILIKE 'unpaid' OR mb.status IS NULL)`);
+      } else {
+        whereConditions.push(`mb.status ILIKE $${paramCounter}`);
+        queryParams.push(status);
+        paramCounter++;
+      }
+    }
+
+    if (year) {
+      // Assuming month_year format is 'MM-YYYY'
+      whereConditions.push(`mbc.month_year LIKE $${paramCounter}`);
+      queryParams.push(`%-${year}`);
+      paramCounter++;
+    }
+
+    if (month) {
+      // Assuming month_year format is 'MM-YYYY'
+      const m = month.toString().padStart(2, '0');
+      whereConditions.push(`mbc.month_year LIKE $${paramCounter}`);
+      queryParams.push(`${m}-%`);
+      paramCounter++;
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
     const countQuery = `
       SELECT COUNT(*) 
       FROM mess_bill_for_students mb
       LEFT JOIN monthly_base_costs mbc
         ON mb.monthly_base_cost_id = mbc.id
-      WHERE mb.student_id = $1 
+      WHERE ${whereClause}
     `;
 
     const dataQuery = `
@@ -59,14 +95,14 @@ const showPaidMessBillsByStudentId = async (req, res) => {
       FROM mess_bill_for_students mb
       LEFT JOIN monthly_base_costs mbc
         ON mb.monthly_base_cost_id = mbc.id
-      WHERE mb.student_id = $1 
+      WHERE ${whereClause}
       ORDER BY mbc.month_year DESC NULLS LAST
-      LIMIT $2 OFFSET $3;
+      LIMIT $${paramCounter} OFFSET $${paramCounter + 1};
     `;
 
     const [countResult, dataResult] = await Promise.all([
-      pool.query(countQuery, [student_id]),
-      pool.query(dataQuery, [student_id, limit, offset])
+      pool.query(countQuery, queryParams),
+      pool.query(dataQuery, [...queryParams, limit, offset])
     ]);
 
     const totalRecords = parseInt(countResult.rows[0].count, 10);
