@@ -33,8 +33,8 @@ export const getMessBillStatusByMonthYear = async (req, res) => {
           COUNT(*) AS total_count,
           COUNT(*) FILTER (WHERE verified = true) AS verified_count,
           COUNT(*) FILTER (WHERE show = true) AS show_count,
-          COUNT(*) FILTER (WHERE status = 'PAID') AS paid_count,
-          COUNT(*) FILTER (WHERE status = 'PENDING' OR status = 'UNPAID') AS unpaid_count
+          COUNT(*) FILTER (WHERE ispaid = true) AS paid_count,
+          COUNT(*) FILTER (WHERE ispaid = false OR ispaid IS NULL) AS unpaid_count
        FROM mess_bill_for_students
        WHERE monthly_base_cost_id = $1;`,
       [monthly_base_cost_id]
