@@ -1,10 +1,12 @@
 // routes/monthlyCalculation.js
 import express from 'express';
-import { updateMessBill  } from '../../../controllers/admin/mesbill/updatestudentsmessbill.js'; // adjust path
+import { updateMessBill } from '../../../controllers/admin/mesbill/updatestudentsmessbill.js'; // adjust path
+
+import authorisation from '../../../controllers/authorisation.js';
 
 const updatemessbill = express.Router();
 
 // Route to create monthly calculation
-updatemessbill.post('/upadatemessbill', updateMessBill );
+updatemessbill.post('/upadatemessbill', authorisation, updateMessBill);
 
 export default updatemessbill;   
