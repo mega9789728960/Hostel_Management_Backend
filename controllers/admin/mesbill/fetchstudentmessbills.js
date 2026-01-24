@@ -1,0 +1,126 @@
+import pool from '../../../database/database.js';
+
+export const fetchStudentMessBillsForAdmin = async (req, res) => {
+    try {
+        const {
+            student_id,
+            page = 1,
+            limit = 10,
+            status,
+            year,
+            month
+        } = req.body;
+
+        if (!student_id) {
+            return res.status(400).json({ error: "student_id is required" });
+        }
+
+        const offset = (page - 1) * limit;
+
+        let whereConditions = [`mb.student_id = $1`];
+        let queryParams = [student_id];
+        let paramCounter = 2;
+
+        if (status) {
+            const s = status.toLowerCase();
+            // Handle "unpaid" specifically to include NULLs
+            if (s === 'unpaid') {
+                whereConditions.push(`(mb.ispaid = false OR mb.ispaid IS NULL)`);
+            }
+            // Handle "paid" to include "success" (common payment gateway status)
+            else if (s === 'paid') {
+                whereConditions.push(`(mb.ispaid = true)`);
+            } else {
+                whereConditions.push(`mb.status ILIKE $${paramCounter}`);
+                queryParams.push(status);
+                paramCounter++;
+            }
+        }
+
+        if (year) {
+            whereConditions.push(`mbc.month_year LIKE $${paramCounter}`);
+            queryParams.push(`%-${year}`);
+            paramCounter++;
+        }
+
+        if (month) {
+            const m = month.toString().padStart(2, '0');
+            whereConditions.push(`mbc.month_year LIKE $${paramCounter}`);
+            queryParams.push(`${m}-%`);
+            paramCounter++;
+        }
+
+        const whereClause = whereConditions.join(' AND ');
+
+        const countQuery = `
+      SELECT COUNT(*) 
+      FROM mess_bill_for_students mb
+      LEFT JOIN monthly_base_costs mbc
+        ON mb.monthly_base_cost_id = mbc.id
+      WHERE ${whereClause}
+    `;
+
+        const dataQuery = `
+      SELECT 
+        mb.id AS mess_bill_id,
+        mb.student_id,
+        mb.monthly_base_cost_id AS base_id,
+        mb.monthly_year_data_id AS year_data_id,
+        mb.number_of_days,
+        mb.status,
+        mb.latest_order_id,
+        mb.paid_date,
+        mb.ispaid,
+        mb.created_at,
+        mb.updated_at,
+        mb.show,
+        mb.verified,
+        mb.isveg,
+        mb.veg_days,
+        mb.non_veg_days,
+        mbc.month_year,
+        mbc.grocery_cost,
+        mbc.vegetable_cost,
+        mbc.gas_charges,
+        mbc.total_milk_litres,
+        mbc.milk_cost_per_litre,
+        mbc.milk_charges_computed,
+        mbc.deductions_income,
+        mbc.veg_extra_per_day,
+        mbc.nonveg_extra_per_day,
+        mbc.total_expenditure,
+        mbc.expenditure_after_income,
+        mbc.mess_fee_per_day,
+       
+        mbc.veg_served_days,
+        mbc.nonveg_served_days,
+        mbc.reduction_applicable_days
+      FROM mess_bill_for_students mb
+      LEFT JOIN monthly_base_costs mbc
+        ON mb.monthly_base_cost_id = mbc.id
+      WHERE ${whereClause}
+      ORDER BY mbc.month_year DESC NULLS LAST
+      LIMIT $${paramCounter} OFFSET $${paramCounter + 1};
+    `;
+
+        const [countResult, dataResult] = await Promise.all([
+            pool.query(countQuery, queryParams),
+            pool.query(dataQuery, [...queryParams, limit, offset])
+        ]);
+
+        const totalRecords = parseInt(countResult.rows[0].count, 10);
+        const rows = dataResult.rows;
+
+        res.json({
+            success: true,
+            data: rows,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: totalRecords,
+            totalPages: Math.ceil(totalRecords / limit),
+        });
+    } catch (error) {
+        console.error("Error fetching mess bills for admin:", error);
+        res.status(500).json({ error: "Failed to fetch mess bills" });
+    }
+};
