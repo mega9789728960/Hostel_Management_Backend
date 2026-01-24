@@ -25,11 +25,11 @@ const showPaidMessBillsByStudentId = async (req, res) => {
       const s = status.toLowerCase();
       // Handle "unpaid" specifically to include NULLs
       if (s === 'unpaid') {
-        whereConditions.push(`(mb.status ILIKE 'unpaid' OR mb.status IS NULL)`);
+        whereConditions.push(`(mb.ispaid = false OR mb.ispaid IS NULL)`);
       }
       // Handle "paid" to include "success" (common payment gateway status)
       else if (s === 'paid') {
-        whereConditions.push(`(mb.status ILIKE 'paid' OR mb.status ILIKE 'success')`);
+        whereConditions.push(`(mb.ispaid = true)`);
       } else {
         whereConditions.push(`mb.status ILIKE $${paramCounter}`);
         queryParams.push(status);
@@ -72,6 +72,7 @@ const showPaidMessBillsByStudentId = async (req, res) => {
         mb.status,
         mb.latest_order_id,
         mb.paid_date,        -- Added paid_date
+        mb.ispaid,
         mb.created_at,
         mb.updated_at,
         mb.show,

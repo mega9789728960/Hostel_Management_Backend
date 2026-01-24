@@ -73,6 +73,22 @@ export default async function paymentWebhook(req, res) {
     }
 
     // ---------------------------------------------------------
+    // Link to Mess Bill (Find ID)
+    // ---------------------------------------------------------
+    let messBillId = null;
+    try {
+      const billResult = await pool.query(
+        `SELECT id FROM mess_bill_for_students WHERE latest_order_id = $1`,
+        [gatewayOrderId]
+      );
+      if (billResult.rows.length > 0) {
+        messBillId = billResult.rows[0].id;
+      }
+    } catch (err) {
+      console.error("⚠️ Error finding mess bill:", err.message);
+    }
+
+    // ---------------------------------------------------------
     // Insert into payments table (SAFE)
     // ---------------------------------------------------------
     try {
@@ -95,11 +111,13 @@ export default async function paymentWebhook(req, res) {
             gateway_payment_id,
             gateway_order_id,
             gateway_settlement,
-            raw_webhook
+            raw_webhook,
+            mess_bill_for_students_id
         ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9,
             $10, $11, $12, $13,
-            $14, $15, $16, $17, $18
+            $14, $15, $16, $17, $18,
+            $19
         )`,
         [
           orderId,
@@ -119,7 +137,8 @@ export default async function paymentWebhook(req, res) {
           gatewayPaymentId,
           gatewayOrderId,
           gatewaySettlement,
-          body
+          body,
+          messBillId
         ]
       );
     } catch (err) {
@@ -139,7 +158,7 @@ export default async function paymentWebhook(req, res) {
     if (paymentStatus === "SUCCESS") {
       await pool.query(
         `UPDATE mess_bill_for_students 
-         SET status = $1, updated_at = NOW(), paid_date = NOW()
+         SET status = $1, ispaid = true, updated_at = NOW(), paid_date = NOW()
          WHERE latest_order_id = $2`,
         [paymentStatus, gatewayOrderId]
       );

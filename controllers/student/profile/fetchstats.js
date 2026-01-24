@@ -69,6 +69,7 @@ const fetchProfileStats = async (req, res) => {
         mbfs.veg_days,
         mbfs.non_veg_days,
         mbfs.number_of_days,
+        mbfs.ispaid,
         myd.total_days,
         mbc.mess_fee_per_day,
         mbc.veg_extra_per_day,
@@ -97,8 +98,8 @@ const fetchProfileStats = async (req, res) => {
                 amount += (bill.non_veg_days || 0) * bill.nonveg_extra_per_day;
             }
 
-            const status = bill.status ? bill.status.toLowerCase() : 'unpaid';
-            if (status === 'paid' || status === 'success') {
+            const isPaid = bill.ispaid;
+            if (isPaid) {
                 paidAmount += amount;
             } else {
                 notPaidAmount += amount;

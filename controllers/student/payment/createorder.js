@@ -6,7 +6,7 @@ const cashfree = new Cashfree(
   CFEnvironment.SANDBOX,
   process.env.APP_ID,
   process.env.PAYMENT_KEY
-  
+
 );
 
 // 🔢 Generate unique order_id (student_id + year_month + timestamp)
@@ -35,6 +35,7 @@ async function createorder(req, res) {
         mb.isveg,
         mb.veg_days,
         mb.non_veg_days,
+        mb.ispaid,
         mbd.mess_fee_per_day,
         mbd.veg_extra_per_day,
         mbd.nonveg_extra_per_day
@@ -54,7 +55,7 @@ async function createorder(req, res) {
     const bill = billQuery.rows[0];
 
     // 2️⃣ Prevent re-payment if already SUCCESS
-    if (bill.status === "SUCCESS") {
+    if (bill.ispaid) {
       return res.status(400).json({ error: "Payment already completed for this month." });
     }
 
@@ -99,7 +100,7 @@ async function createorder(req, res) {
       order_note: `Mess bill for ${year_month}`,
       order_meta: {
         notify_url: "https://finalbackend1.vercel.app/webhook/",
-        return_url:"https://chozha-boys-hostel-management-syste.vercel.app/dashboard"
+        return_url: "https://chozha-boys-hostel-management-syste.vercel.app/dashboard"
       },
       order_tags: {
         student_id: student_id,

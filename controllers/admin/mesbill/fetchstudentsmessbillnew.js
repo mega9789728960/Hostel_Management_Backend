@@ -63,6 +63,7 @@ export const fetchMessBills = async (req, res) => {
 
         mbfs.id AS mess_bill_id,
         mbfs.status AS payment_status,
+        mbfs.ispaid,
         mbfs.number_of_days,
         mbfs.verified,
         mbfs.isveg,

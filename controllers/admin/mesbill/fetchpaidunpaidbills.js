@@ -38,16 +38,16 @@ export const fetchPaidUnpaidBills = async (req, res) => {
         if (status) {
             const normalizedStatus = status.toUpperCase();
             if (normalizedStatus === 'PAID') {
-                // Match any status that implies paid
-                query += ` AND mbs.status = $${paramIndex}`;
-                values.push('PAID');
+                // Match ispaid = true
+                query += ` AND mbs.ispaid = true`;
             } else if (normalizedStatus === 'UNPAID' || normalizedStatus === 'PENDING') {
-                query += ` AND (mbs.status = 'PENDING' OR mbs.status = 'UNPAID')`;
+                // Match ispaid = false or null
+                query += ` AND (mbs.ispaid = false OR mbs.ispaid IS NULL)`;
             } else {
                 query += ` AND mbs.status = $${paramIndex}`;
-                values.push(status); // Use original value but could use normalized if stored as uppercase
+                values.push(status);
+                paramIndex++;
             }
-            if (normalizedStatus !== 'UNPAID' && normalizedStatus !== 'PENDING') paramIndex++;
         }
 
         if (department) {
