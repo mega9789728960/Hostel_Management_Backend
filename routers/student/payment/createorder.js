@@ -1,5 +1,6 @@
-import  express from "express";
+import express from "express";
 import createorder from "../../../controllers/student/payment/createorder.js";
+import studentauth from "../../../controllers/studentauth.js";
 const createorderrouter = express.Router();
-createorderrouter.use("/create-order",createorder);
+createorderrouter.post("/create-order", studentauth, createorder);
 export default createorderrouter
