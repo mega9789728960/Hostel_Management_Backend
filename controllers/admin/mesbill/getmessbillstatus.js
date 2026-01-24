@@ -32,13 +32,15 @@ export const getMessBillStatusByMonthYear = async (req, res) => {
       `SELECT 
           COUNT(*) AS total_count,
           COUNT(*) FILTER (WHERE verified = true) AS verified_count,
-          COUNT(*) FILTER (WHERE show = true) AS show_count
+          COUNT(*) FILTER (WHERE show = true) AS show_count,
+          COUNT(*) FILTER (WHERE status = 'PAID') AS paid_count,
+          COUNT(*) FILTER (WHERE status = 'PENDING' OR status = 'UNPAID') AS unpaid_count
        FROM mess_bill_for_students
        WHERE monthly_base_cost_id = $1;`,
       [monthly_base_cost_id]
     );
 
-    const { total_count, verified_count, show_count } = statusCheck.rows[0];
+    const { total_count, verified_count, show_count, paid_count, unpaid_count } = statusCheck.rows[0];
 
     if (parseInt(total_count) === 0) {
       return res.status(404).json({
@@ -62,6 +64,8 @@ export const getMessBillStatusByMonthYear = async (req, res) => {
       total_students: parseInt(total_count),
       verified_count: parseInt(verified_count),
       show_count: parseInt(show_count),
+      paid_count: parseInt(paid_count),
+      unpaid_count: parseInt(unpaid_count),
       status
     });
 
