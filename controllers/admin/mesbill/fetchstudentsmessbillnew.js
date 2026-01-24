@@ -62,6 +62,7 @@ export const fetchMessBills = async (req, res) => {
         myd.total_days AS total_days_in_month,
 
         mbfs.id AS mess_bill_id,
+        mbfs.status,
         mbfs.status AS payment_status,
         mbfs.ispaid,
         mbfs.number_of_days,
@@ -69,6 +70,9 @@ export const fetchMessBills = async (req, res) => {
         mbfs.isveg,
         mbfs.veg_days,
         mbfs.non_veg_days,
+        mbfs.latest_order_id,
+        mbfs.show,
+        mbfs.paid_date,
         mbfs.created_at,
         mbfs.updated_at,
 

@@ -4,7 +4,22 @@ export const updateMessBill = async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const { id, number_of_days, verified, isveg, veg_days, non_veg_days } = req.body;
+    const {
+      id,
+      student_id,
+      status,
+      latest_order_id,
+      monthly_year_data_id,
+      number_of_days,
+      monthly_base_cost_id,
+      show,
+      verified,
+      isveg,
+      veg_days,
+      non_veg_days,
+      paid_date,
+      ispaid
+    } = req.body;
 
     // 🔒 Validation
     if (!id) {
@@ -16,18 +31,19 @@ export const updateMessBill = async (req, res) => {
     let idx = 1;
 
     // 🧠 Build dynamic fields
-    if (number_of_days !== undefined) {
-      fields.push(`number_of_days = $${idx}`);
-      values.push(number_of_days);
-      idx++;
-    }
+    // Fields allowed to update
+    if (student_id !== undefined) { fields.push(`student_id = $${idx}`); values.push(student_id); idx++; }
+    if (status !== undefined) { fields.push(`status = $${idx}`); values.push(status); idx++; }
+    if (latest_order_id !== undefined) { fields.push(`latest_order_id = $${idx}`); values.push(latest_order_id); idx++; }
+    if (monthly_year_data_id !== undefined) { fields.push(`monthly_year_data_id = $${idx}`); values.push(monthly_year_data_id); idx++; }
+    if (number_of_days !== undefined) { fields.push(`number_of_days = $${idx}`); values.push(number_of_days); idx++; }
+    if (monthly_base_cost_id !== undefined) { fields.push(`monthly_base_cost_id = $${idx}`); values.push(monthly_base_cost_id); idx++; }
+    if (show !== undefined) { fields.push(`show = $${idx}`); values.push(show); idx++; }
+    if (verified !== undefined) { fields.push(`verified = $${idx}`); values.push(verified); idx++; }
+    if (paid_date !== undefined) { fields.push(`paid_date = $${idx}`); values.push(paid_date); idx++; }
+    if (ispaid !== undefined) { fields.push(`ispaid = $${idx}`); values.push(ispaid); idx++; }
 
-    if (verified !== undefined) {
-      fields.push(`verified = $${idx}`);
-      values.push(verified);
-      idx++;
-    }
-
+    // Special logic for veg/non-veg
     if (isveg !== undefined) {
       fields.push(`isveg = $${idx}`);
       values.push(isveg);
@@ -51,6 +67,10 @@ export const updateMessBill = async (req, res) => {
 
         fields.push(`veg_days = 0`);
       }
+    } else {
+      // If isveg is NOT changing, but veg_days or non_veg_days ARE changing
+      if (veg_days !== undefined) { fields.push(`veg_days = $${idx}`); values.push(veg_days); idx++; }
+      if (non_veg_days !== undefined) { fields.push(`non_veg_days = $${idx}`); values.push(non_veg_days); idx++; }
     }
 
     // 🧩 No fields to update
