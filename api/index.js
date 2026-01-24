@@ -91,6 +91,7 @@ import dismissannouncementforstudentrouter from "../routers/student/notification
 import deleteannouncementrouter from "../routers/admin/announcement/deleteannouncementrouter.js";
 import statsrouter from "../routers/student/profile/statsrouter.js";
 import logoutrouter from "../routers/admin/logout/logout.js";
+import studentLogoutRouter from "../routers/student/logout/logout.js";
 
 import createorderrouter from "../routers/student/payment/createorder.js";
 import messbillpush from "../routers/admin/messbill/messbillpush.js";
@@ -141,7 +142,9 @@ api.use("/students", [
   generateauthtokenRouter,
   generateauthtokenRouter,
   fetchdepartmentsrouter,
-  statsrouter
+  fetchdepartmentsrouter,
+  statsrouter,
+  studentLogoutRouter
 ]);
 
 // 👑 Admin Routes

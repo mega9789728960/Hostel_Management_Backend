@@ -29,7 +29,14 @@ async function logout(req, res) {
     }
 
     // 4️⃣ Clear the refresh token cookie on client
+    // 4️⃣ Clear the refresh token cookie on client
     res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+    // Clear accessToken as well
+    res.clearCookie("accessToken", {
       httpOnly: true,
       secure: true,
       sameSite: "none",
