@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 async function studentauth(req, res, next) {
   // 1️⃣ Get tokens
-  const token = req.body.token || req.headers["authorization"]?.split(" ")[1];
+  const token = req.body.token || req.query.token || req.headers["authorization"]?.split(" ")[1] || req.cookies.studentToken;
   if (!token) {
     res.json({ message: 'No token provided' });
   }
