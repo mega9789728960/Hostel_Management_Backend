@@ -7,7 +7,8 @@ async function fetchstudent(req, res) {
       academic_year,
       status, // "all" | true | false
       page = 1,
-      limit = 10
+      limit = 10,
+      id // Optional: fetch specific student
     } = req.body || {};
 
     // Calculate offset for pagination
@@ -16,6 +17,12 @@ async function fetchstudent(req, res) {
     const conditions = [];
     const values = [];
     let idx = 1;
+
+    // Optional: Fetch specific student by ID
+    if (id) {
+      conditions.push(`id = $${idx++}`);
+      values.push(id);
+    }
 
     // Optional: Filter by department if provided
     if (department) {
