@@ -9,7 +9,7 @@ async function generateauthtoken(req, res) {
 
   try {
     const result = await pool.query(
-      "SELECT s.id, s.email FROM students s JOIN refreshtokens r ON s.id = r.user_id WHERE r.tokens = $1;",
+      "SELECT s.* FROM students s JOIN refreshtokens r ON s.id = r.user_id WHERE r.tokens = $1;",
       [refreshToken]
     );
     const rows = result.rows;
@@ -17,8 +17,11 @@ async function generateauthtoken(req, res) {
     if (rows.length === 0) {
       return res.status(403).json({ message: "Forbidden" });
     } else {
+      const user = rows[0];
+      const { password, ...userData } = user;
+
       const token = jwt.sign(
-        { id: rows[0].id, email: rows[0].email, role: "student" },
+        { id: user.id, email: user.email, role: "student" },
         process.env.SECRET_KEY || "secret",
         { expiresIn: "2h" }
       );
@@ -30,7 +33,7 @@ async function generateauthtoken(req, res) {
         maxAge: 2 * 60 * 60 * 1000, // 2 hours
       });
 
-      return res.json({ token });
+      return res.json({ token, data: userData });
     }
   } catch (err) {
     console.error("Error generating auth token:", err);
