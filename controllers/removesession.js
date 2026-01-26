@@ -2,21 +2,16 @@ import pool from "../database/database.js";
 
 async function removesession(req, res) {
   try {
-    const { sessionid } = req.body;
-    const userId = req.body.id; // from JWT middleware
+    const { sessionid, userid, role } = req.body;
 
-    if (!sessionid) {
-      return res.status(400).json({ error: "Please provide session id" });
-    }
-
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+    if (!sessionid || !userid || !role) {
+      return res.status(400).json({ error: "Please provide session id, user id, and role" });
     }
 
     const result = await pool.query(
       `DELETE FROM refreshtokens 
-       WHERE id = $1 AND user_id = $2`,
-      [sessionid, userId]
+       WHERE id = $1 AND user_id = $2 AND role = $3`,
+      [sessionid, userid, role]
     );
 
     if (result.rowCount === 0) {

@@ -114,6 +114,8 @@ import getmessbillstatus from "../routers/admin/messbill/getmessbillstatus.js";
 import generateauthtokenRouter from "../routers/generateauthtokenforstudent.js";
 import generateauthtokenforadminRouter from "../routers/generateauthtokenforadmin.js";
 import fetchPaidUnpaidRouter from "../routers/admin/messbill/fetchpaidunpaidbills.js";
+import getsessionrouter from "../routers/session/getsessionrouter.js";
+import removesessionrouter from "../routers/session/removesessionrouter.js";
 
 
 
@@ -144,7 +146,9 @@ api.use("/students", [
   fetchdepartmentsrouter,
   fetchdepartmentsrouter,
   statsrouter,
-  studentLogoutRouter
+  studentLogoutRouter,
+  getsessionrouter,
+  removesessionrouter
 ]);
 
 // 👑 Admin Routes
@@ -179,7 +183,9 @@ api.use("/admin", [
   getmessbillstatus,
   generateauthtokenforadminRouter,
   complaintstatuschangeforadminrouter, // Added this router to the admin middleware stack
-  fetchPaidUnpaidRouter
+  fetchPaidUnpaidRouter,
+  getsessionrouter,
+  removesessionrouter
 ]);
 
 // 💳 Order & Payment Routes
