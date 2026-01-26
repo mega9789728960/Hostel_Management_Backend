@@ -93,6 +93,8 @@ import statsrouter from "../routers/student/profile/statsrouter.js";
 import logoutrouter from "../routers/admin/logout/logout.js";
 import studentLogoutRouter from "../routers/student/logout/logout.js";
 
+import paymentHistoryRouter from "../routers/student/payment/payment_history.js";
+
 import createorderrouter from "../routers/student/payment/createorder.js";
 import messbillpush from "../routers/admin/messbill/messbillpush.js";
 import messbillshow from "../routers/admin/messbill/messbillshow.js";
@@ -148,7 +150,8 @@ api.use("/students", [
   statsrouter,
   studentLogoutRouter,
   getsessionrouter,
-  removesessionrouter
+  removesessionrouter,
+  paymentHistoryRouter
 ]);
 
 // 👑 Admin Routes
