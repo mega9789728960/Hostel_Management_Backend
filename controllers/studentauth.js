@@ -9,16 +9,24 @@ async function studentauth(req, res, next) {
     return res.json({ message: 'No token provided' });
   }
 
-  const isBlacklisted = await redis.get(`blacklist:${token}`);
-  if (isBlacklisted) {
-    return res.status(401).json({ message: "Token is invalidated" });
-  }
+
 
   try {
     // 2️⃣ Verify access token
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    // 3️⃣ Verify if refresh token was revoked
+    if (decoded.refreshtokenId) {
+      const revokedData = await redis.get(`revoked_token:${decoded.refreshtokenId}`);
+      if (revokedData) {
+        const { user_id, email } = JSON.parse(revokedData);
+        if (String(user_id) === String(decoded.id) && email === decoded.email) {
+          return res.status(401).json({ message: "Token has been revoked (Logout)" });
+        }
+      }
+    }
+
     if (decoded.role != "student") {
-      return res.json({ "message": "you are not a student" })
+      return res.status(403).json({ "message": "you are not a student" }) // Status 403 for role mismatch
     }
     req.user = decoded;
     next();

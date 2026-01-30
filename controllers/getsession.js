@@ -2,7 +2,12 @@ import pool from "../database/database.js";
 
 async function getsession(req, res) {
   try {
-    const { userid, role } = req.body;
+    let { userid, role } = req.body;
+
+    if (req.user) {
+      userid = req.user.id;
+      role = req.user.role;
+    }
 
     if (!userid || !role) {
       return res.status(400).json({ error: "Provide a valid user ID and role" });

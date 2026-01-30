@@ -13,11 +13,17 @@ async function dismissnotification(req, res) {
     }
 
     // 2️⃣ Execute the DELETE query
-    const result = await pool.query(
-      `DELETE FROM students_dashboard_notifications 
-       WHERE id = $1`,
-      [notification_id]
-    );
+    // 2️⃣ Execute the DELETE query
+    // If we have user info, ensure they own the notification
+    let query = `DELETE FROM students_dashboard_notifications WHERE id = $1`;
+    let values = [notification_id];
+
+    if (req.user && req.user.id) {
+      query += ` AND student_id = $2`;
+      values.push(req.user.id);
+    }
+
+    const result = await pool.query(query, values);
 
     // 3️⃣ Check if any row was deleted
     if (result.rowCount > 0) {

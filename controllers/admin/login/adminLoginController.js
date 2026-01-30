@@ -35,24 +35,37 @@ export async function adminLoginController(req, res) {
     }
 
     // Generate tokens
+    // Token generation moved below
+    console.log(process.env.TOKENLIFE)
+
+    // 1. Insert placeholder to get the generated ID
+    const insertResult = await pool.query(
+      `INSERT INTO refreshtokens (user_id, tokens, expires_at, role)
+       VALUES ($1, 'PENDING', NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days', 'admin')
+       RETURNING id`,
+      [user.id]
+    );
+
+    const tokenId = insertResult.rows[0].id;
+
+    // Generate access token with refreshtokenId
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: "admin" },
+      { id: user.id, email: user.email, role: "admin", refreshtokenId: tokenId },
       process.env.SECRET_KEY || "mysecret",
       { expiresIn: process.env.TOKENLIFE }
     );
-    console.log(process.env.TOKENLIFE)
 
+    // 2. Generate refresh token with the tokenId
     const refreshToken = jwt.sign(
-      { id: user.id, email: user.email, role: "admin" },
+      { id: user.id, email: user.email, role: "admin", refreshtokenId: tokenId },
       process.env.SECRET_KEY || "mysecret",
       { expiresIn: process.env.REFRESH_TOKEN_LIFE }
     );
 
-    // Save refresh token
+    // 3. Update the row with the actual token
     await pool.query(
-      `INSERT INTO refreshtokens (user_id, tokens, expires_at, role)
-       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days', 'admin')`,
-      [user.id, refreshToken]
+      "UPDATE refreshtokens SET tokens = $1 WHERE id = $2",
+      [refreshToken, tokenId]
     );
 
     const maxAge = Number(process.env.REFRESH_TOKEN_LIFE[0]) * 24 * 60 * 60 * 1000;

@@ -3,7 +3,7 @@ import redis from "../database/redis.js";
 
 async function removesession(req, res) {
   try {
-    const { sessionid, userid, role } = req.body;
+    let { sessionid, userid, role } = req.body;
 
     if (!sessionid || !userid || !role) {
       return res.status(400).json({ error: "Please provide session id, user id, and role" });
@@ -11,13 +11,29 @@ async function removesession(req, res) {
 
     const result = await pool.query(
       `DELETE FROM refreshtokens 
-       WHERE id = $1 AND user_id = $2 AND role = $3 RETURNING tokens`,
+       WHERE id = $1 AND user_id = $2 AND role = $3 RETURNING id, user_id, tokens`,
       [sessionid, userid, role]
     );
 
     if (result.rowCount !== 0) {
-      const token = result.rows[0].tokens;
-      await redis.set(`blacklist:${token}`, 'true', { ex: 120 });
+      const { id, user_id, tokens } = result.rows[0];
+
+      // Fetch email to store in Redis
+      let email;
+
+      if (role === 'student') {
+        const u = await pool.query('SELECT email FROM students WHERE id = $1', [userid]);
+        if (u.rows.length) email = u.rows[0].email;
+      } else if (role === 'admin') {
+        const u = await pool.query('SELECT email FROM admins WHERE id = $1', [userid]);
+        if (u.rows.length) email = u.rows[0].email;
+      }
+
+      if (email) {
+        // Key: revoked_token:{id} (where id is refreshtokens table PK)
+        // Value: JSON string with user info
+        await redis.set(`revoked_token:${id}`, JSON.stringify({ user_id: userid, email, role }), { ex: 7 * 24 * 60 * 60 });
+      }
     }
 
     if (result.rowCount === 0) {

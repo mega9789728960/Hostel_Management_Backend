@@ -5,25 +5,28 @@ async function absent(req, res) {
   try {
     const studentlat = parseFloat(req.body.lat);
     const studentlng = parseFloat(req.body.lng);
-    const id = parseInt(req.body.id);
-    console.log(studentlat,studentlng,id);
+    let id = req.body.id;
+    if (req.user && req.user.id) id = req.user.id;
+    id = parseInt(id);
+
+    console.log(studentlat, studentlng, id);
     const token = req.body.token
-    
+
 
     // Validate inputs
     if (isNaN(studentlat) || isNaN(studentlng) || isNaN(id)) {
-      return res.status(400).json({ success: false, error: "Invalid input",token });
+      return res.status(400).json({ success: false, error: "Invalid input", token });
     }
 
-    
+
     const hostellat = process.env.HOSTEL_LAT;
     const hostellng = process.env.HOSTEL_LNG;
-    
+
 
     const isinHostel = isInHostel(studentlat, studentlng, hostellat, hostellng, 5000);
 
     if (isinHostel) {
-      return res.status(403).json({ success: false, error: "Student  inside hostel",token });
+      return res.status(403).json({ success: false, error: "Student  inside hostel", token });
     }
 
     // Insert attendance
@@ -36,13 +39,13 @@ async function absent(req, res) {
     const result = await pool.query(query, [id, "Absent"]);
 
     if (result.rows.length === 0) {
-      return res.json({ success: false, message: "Attendance already marked for today" ,token:req.body.token});
+      return res.json({ success: false, message: "Attendance already marked for today", token: req.body.token });
     }
 
-    return res.json({ success: true, attendance: result.rows[0] ,token:req.body.token});
+    return res.json({ success: true, attendance: result.rows[0], token: req.body.token });
   } catch (err) {
     console.error("Error marking attendance:", err);
-    return res.status(500).json({ success: false, error: "Server error" ,token});
+    return res.status(500).json({ success: false, error: "Server error", token });
   }
 }
 

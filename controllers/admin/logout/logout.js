@@ -8,9 +8,7 @@ async function logout(req, res) {
     const refreshToken = req.cookies?.refreshToken;
     const accessToken = req.cookies?.accessToken || req.headers["authorization"]?.split(" ")[1];
 
-    if (accessToken) {
-      await redis.set(`blacklist:${accessToken}`, 'true', { ex: 120 });
-    }
+
 
     if (!refreshToken) {
       return res.status(400).json({ success: false, message: "Refresh token missing" });
@@ -30,6 +28,12 @@ async function logout(req, res) {
       `DELETE FROM refreshtokens WHERE user_id = $1 AND tokens = $2 RETURNING id`,
       [decoded.id, refreshToken]
     );
+
+    if (result.rows.length > 0) {
+      for (const row of result.rows) {
+        await redis.set(`revoked_token:${row.id}`, JSON.stringify({ user_id: decoded.id, email: decoded.email, role: 'admin' }), { ex: 7 * 24 * 60 * 60 });
+      }
+    }
 
     if (result.rowCount === 0) {
       return res.status(404).json({ success: false, message: "No refresh token found to delete" });

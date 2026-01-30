@@ -28,24 +28,27 @@ export async function studentLoginController(req, res) {
       return res.status(401).json({ success: false, error: "Invalid password" });
     }
 
-    // Generate tokens
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: "student" },
-      process.env.SECRET_KEY || "mysecret",
-      { expiresIn: process.env.TOKENLIFE }
-    );
-
     const refreshToken = jwt.sign(
       { id: user.id, email: user.email, role: "student" },
       process.env.SECRET_KEY || "mysecret",
       { expiresIn: process.env.REFRESH_TOKEN_LIFE }
     );
 
-    // Save refresh token
-    await pool.query(
+    // Save refresh token first to get ID
+    const insertResult = await pool.query(
       `INSERT INTO refreshtokens (user_id, tokens, expires_at,role)
-       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days','student')`,
+       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days','student')
+       RETURNING id`,
       [user.id, refreshToken]
+    );
+
+    const refreshtokenId = insertResult.rows[0].id;
+
+    // Generate tokens
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: "student", refreshtokenId: refreshtokenId },
+      process.env.SECRET_KEY || "mysecret",
+      { expiresIn: process.env.TOKENLIFE }
     );
 
     const { password: password1, ...userData } = user;

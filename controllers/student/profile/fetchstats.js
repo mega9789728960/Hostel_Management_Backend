@@ -1,10 +1,10 @@
 import pool from "../../../database/database.js";
 
 const fetchProfileStats = async (req, res) => {
-    const { student_id } = req.body; // Expecting student_id from body (or could be params if GET)
-    // Note: if using GET, use req.query or req.params. converting to POST for easy body access or use GET with params.
-    // Profile.jsx uses GET usually. Let's support POST for consistency with other controllers seen, or GET.
-    // I will use POST as many controllers here seem to use POST for fetching with params.
+    let { student_id } = req.body;
+    if (!student_id && req.user) {
+        student_id = req.user.id;
+    }
 
     if (!student_id) {
         return res.status(400).json({ success: false, error: "Student ID is required" });

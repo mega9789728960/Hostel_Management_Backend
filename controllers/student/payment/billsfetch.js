@@ -2,14 +2,18 @@ import pool from '../../../database/database.js';
 
 const showPaidMessBillsByStudentId = async (req, res) => {
   try {
-    const {
+    let {
       student_id,
       page = 1,
       limit = 10,
       status,
       year,
       month
-    } = req.body; // or req.query for GET requests
+    } = req.body;
+
+    if (!student_id && req.user) {
+      student_id = req.user.id;
+    }
 
     if (!student_id) {
       return res.status(400).json({ error: "student_id is required" });
