@@ -11,10 +11,10 @@ export async function studentLoginController(req, res) {
     }
 
     // Check if student exists
-   const result = await pool.query(
-  "SELECT * FROM students WHERE email = $1",
-  [email]
-);
+    const result = await pool.query(
+      "SELECT * FROM students WHERE email = $1",
+      [email]
+    );
 
     const user = result.rows[0];
 
@@ -32,7 +32,7 @@ export async function studentLoginController(req, res) {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: "student" },
       process.env.SECRET_KEY || "mysecret",
-      { expiresIn: process.env.TOKENLIFE  }
+      { expiresIn: process.env.TOKENLIFE }
     );
 
     const refreshToken = jwt.sign(
@@ -40,7 +40,7 @@ export async function studentLoginController(req, res) {
       process.env.SECRET_KEY || "mysecret",
       { expiresIn: process.env.REFRESH_TOKEN_LIFE }
     );
-        
+
     // Save refresh token
     await pool.query(
       `INSERT INTO refreshtokens (user_id, tokens, expires_at,role)
@@ -48,14 +48,14 @@ export async function studentLoginController(req, res) {
       [user.id, refreshToken]
     );
 
-    const { password:password1, ...userData } = user;
+    const { password: password1, ...userData } = user;
 
-  
-   const maxAge = Number(process.env.REFRESH_TOKEN_LIFE[0] ) * 24 * 60 * 60 * 1000;
+
+    const maxAge = Number(process.env.REFRESH_TOKEN_LIFE[0]) * 24 * 60 * 60 * 1000;
     // Store in cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure:true,
+      secure: true,
       sameSite: "none",
       maxAge: maxAge,
     });

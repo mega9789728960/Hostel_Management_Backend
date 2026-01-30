@@ -1,10 +1,17 @@
 import jwt from "jsonwebtoken";
 import pool from "../../../database/database.js";
+import redis from "../../../database/redis.js";
 
 async function logout(req, res) {
   try {
     // 1️⃣ Get refresh token from cookies
     const refreshToken = req.cookies?.refreshToken;
+    const accessToken = req.cookies?.accessToken || req.headers["authorization"]?.split(" ")[1];
+
+    if (accessToken) {
+      await redis.set(`blacklist:${accessToken}`, 'true', { ex: 120 });
+    }
+
     if (!refreshToken) {
       return res.status(400).json({ success: false, message: "Refresh token missing" });
     }
@@ -28,7 +35,6 @@ async function logout(req, res) {
       return res.status(404).json({ success: false, message: "No refresh token found to delete" });
     }
 
-    // 4️⃣ Clear the refresh token cookie on client
     // 4️⃣ Clear the refresh token cookie on client
     res.clearCookie("refreshToken", {
       httpOnly: true,

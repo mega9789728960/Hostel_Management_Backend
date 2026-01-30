@@ -1,8 +1,14 @@
 import pool from "../../../database/database.js";
+import redis from "../../../database/redis.js";
 
 async function studentLogout(req, res) {
     try {
         const refreshToken = req.cookies.refreshToken;
+        const studentToken = req.cookies.studentToken || req.headers["authorization"]?.split(" ")[1];
+
+        if (studentToken) {
+            await redis.set(`blacklist:${studentToken}`, 'true', { ex: 120 });
+        }
 
         // Clear cookies
         res.clearCookie("refreshToken", {
