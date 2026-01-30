@@ -3,6 +3,10 @@ import redis from "../../../database/redis.js";
 
 async function studentLogout(req, res) {
     try {
+        if (!req.user || String(req.user.id) !== String(req.body.user_id)) {
+            return res.status(403).json({ success: false, error: "Unauthorized: User ID mismatch" });
+        }
+
         const refreshToken = req.cookies.refreshToken;
         const studentToken = req.cookies.studentToken || req.headers["authorization"]?.split(" ")[1];
 
