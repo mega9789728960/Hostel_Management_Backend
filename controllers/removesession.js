@@ -1,4 +1,5 @@
 import pool from "../database/database.js";
+import redis from "../database/redis.js";
 
 async function removesession(req, res) {
   try {
@@ -10,9 +11,14 @@ async function removesession(req, res) {
 
     const result = await pool.query(
       `DELETE FROM refreshtokens 
-       WHERE id = $1 AND user_id = $2 AND role = $3`,
+       WHERE id = $1 AND user_id = $2 AND role = $3 RETURNING tokens`,
       [sessionid, userid, role]
     );
+
+    if (result.rowCount !== 0) {
+      const token = result.rows[0].tokens;
+      await redis.set(`blacklist:${token}`, 'true', { ex: 120 });
+    }
 
     if (result.rowCount === 0) {
       return res.status(200).json({
