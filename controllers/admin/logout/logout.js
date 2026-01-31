@@ -4,6 +4,7 @@ import redis from "../../../database/redis.js";
 
 async function logout(req, res) {
   try {
+    console.log("Logout Request Body:", req.body);
     // 1️⃣ Get refresh token from cookies
     const refreshToken = req.cookies?.refreshToken;
     const accessToken = req.cookies?.accessToken || req.headers["authorization"]?.split(" ")[1];
