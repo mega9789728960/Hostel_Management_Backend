@@ -63,6 +63,13 @@ export async function studentLoginController(req, res) {
       maxAge: maxAge,
     });
 
+    res.cookie("refreshTokenId", refreshtokenId, {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      maxAge: maxAge,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Student login successful",
