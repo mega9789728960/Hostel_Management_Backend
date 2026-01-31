@@ -65,6 +65,7 @@ import studentLoginRouter from "../routers/student/login/studentsLoginRouter.js"
 import adminLoginRouter from "../routers/admin/login/adminLoginRouter.js";
 import editstudentsdetailsrouter from "../routers/admin/students/editstudentsdetailsrouter.js";
 import attendancerouter from "../routers/student/attendance/attendancerouter.js";
+import showattendancestudentrouter from "../routers/student/attendance/showattendancerouter.js";
 import fetchcomplaintforadminrouter from "../routers/admin/complaint/fetchcomplaintforadminsrouter.js";
 import showattendancerouter from "../routers/admin/attendance/showattendance.js";
 import registercomplaintrouter from "../routers/student/complaints/registercomplaintrouter.js";
@@ -135,6 +136,7 @@ api.use("/students", [
   verifycodeforgotrouter,
   changepassowordrouter,
   attendancerouter,
+  showattendancestudentrouter,
   registercomplaintrouter,
   editcomplaintrouter,
   fetchcomplaintsforstudentsrouter,
