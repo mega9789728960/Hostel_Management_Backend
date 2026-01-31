@@ -8,20 +8,7 @@ async function attendance(req, res) {
     id = parseInt(id);
     const token = req.body.token;
 
-    // Check if this is a request to mark attendance (requires lat/lng)
-    // If lat/lng are missing, assume it's a fetch request
-    if (req.body.lat === undefined || req.body.lng === undefined) {
-      console.log("Attendance fetch request for ID:", id, "Body ID:", req.body.id, "User ID:", req.user ? req.user.id : 'N/A');
-      if (isNaN(id)) {
-        console.error("Invalid Student ID:", id);
-        return res.status(400).json({ success: false, error: "Invalid Student ID", token });
-      }
 
-      const query = `SELECT * FROM attendance WHERE student_id = $1 ORDER BY date DESC`;
-      const result = await pool.query(query, [id]);
-
-      return res.json({ success: true, data: result.rows, token });
-    }
 
     const studentlat = parseFloat(req.body.lat);
     const studentlng = parseFloat(req.body.lng);
