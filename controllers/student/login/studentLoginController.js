@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 export async function studentLoginController(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceInfo } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ success: false, error: "Email and password are required" });
@@ -36,10 +36,10 @@ export async function studentLoginController(req, res) {
 
     // Save refresh token first to get ID
     const insertResult = await pool.query(
-      `INSERT INTO refreshtokens (user_id, tokens, expires_at,role)
-       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days','student')
+      `INSERT INTO refreshtokens (user_id, tokens, expires_at, role, device_info)
+       VALUES ($1, $2, NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days', 'student', $3)
        RETURNING id`,
-      [user.id, refreshToken]
+      [user.id, refreshToken, deviceInfo]
     );
 
     const refreshtokenId = insertResult.rows[0].id;

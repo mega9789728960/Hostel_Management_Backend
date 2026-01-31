@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 export async function adminLoginController(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceInfo } = req.body;
 
     if (!email || !password) {
       return res
@@ -40,10 +40,10 @@ export async function adminLoginController(req, res) {
 
     // 1. Insert placeholder to get the generated ID
     const insertResult = await pool.query(
-      `INSERT INTO refreshtokens (user_id, tokens, expires_at, role)
-       VALUES ($1, 'PENDING', NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days', 'admin')
+      `INSERT INTO refreshtokens (user_id, tokens, expires_at, role, device_info)
+       VALUES ($1, 'PENDING', NOW() + interval '${process.env.REFRESH_TOKEN_LIFE[0]} days', 'admin', $2)
        RETURNING id`,
-      [user.id]
+      [user.id, deviceInfo]
     );
 
     const tokenId = insertResult.rows[0].id;
