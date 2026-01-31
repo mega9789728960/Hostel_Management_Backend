@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 export async function adminLoginController(req, res) {
   try {
     const { email, password, deviceInfo } = req.body;
+    console.log("Admin Login Request Body:", JSON.stringify(req.body, null, 2));
 
     if (!email || !password) {
       return res
