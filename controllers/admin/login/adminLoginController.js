@@ -79,6 +79,13 @@ export async function adminLoginController(req, res) {
       maxAge: maxAge,
     });
 
+    res.cookie("refreshTokenId", tokenId, {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      maxAge: maxAge,
+    });
+
     const { password: password1, ...userData } = user;
 
 
