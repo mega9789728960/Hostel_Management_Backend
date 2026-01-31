@@ -61,6 +61,7 @@ export async function studentLoginController(req, res) {
       secure: true,
       sameSite: "none",
       maxAge: maxAge,
+      path: "/"
     });
 
     res.cookie("refreshTokenId", refreshtokenId, {
@@ -68,6 +69,7 @@ export async function studentLoginController(req, res) {
       secure: true,
       sameSite: "none",
       maxAge: maxAge,
+      path: "/"
     });
 
     res.cookie("role", "student", {
@@ -75,6 +77,7 @@ export async function studentLoginController(req, res) {
       secure: true,
       sameSite: "none",
       maxAge: maxAge,
+      path: "/"
     });
 
     return res.status(200).json({

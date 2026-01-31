@@ -77,6 +77,7 @@ export async function adminLoginController(req, res) {
       secure: true,
       sameSite: "none",
       maxAge: maxAge,
+      path: "/"
     });
 
     res.cookie("refreshTokenId", tokenId, {
@@ -84,6 +85,7 @@ export async function adminLoginController(req, res) {
       secure: true,
       sameSite: "none",
       maxAge: maxAge,
+      path: "/"
     });
 
     res.cookie("role", "admin", {
@@ -91,6 +93,7 @@ export async function adminLoginController(req, res) {
       secure: true,
       sameSite: "none",
       maxAge: maxAge,
+      path: "/"
     });
 
     const { password: password1, ...userData } = user;
