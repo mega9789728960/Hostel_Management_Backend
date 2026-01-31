@@ -3,14 +3,26 @@ import pool from "../../../database/database.js";
 
 async function attendance(req, res) {
   try {
-    const studentlat = parseFloat(req.body.lat);
-    const studentlng = parseFloat(req.body.lng);
     let id = req.body.id;
     if (req.user && req.user.id) id = req.user.id;
     id = parseInt(id);
+    const token = req.body.token;
 
-    const token = req.body.token
+    // Check if this is a request to mark attendance (requires lat/lng)
+    // If lat/lng are missing, assume it's a fetch request
+    if (req.body.lat === undefined || req.body.lng === undefined) {
+      if (isNaN(id)) {
+        return res.status(400).json({ success: false, error: "Invalid Student ID", token });
+      }
 
+      const query = `SELECT * FROM attendance WHERE student_id = $1 ORDER BY date DESC`;
+      const result = await pool.query(query, [id]);
+
+      return res.json({ success: true, data: result.rows, token });
+    }
+
+    const studentlat = parseFloat(req.body.lat);
+    const studentlng = parseFloat(req.body.lng);
 
     // Validate inputs
     if (isNaN(studentlat) || isNaN(studentlng) || isNaN(id)) {
@@ -43,8 +55,8 @@ async function attendance(req, res) {
 
     return res.json({ success: true, attendance: result.rows[0], token: req.body.token });
   } catch (err) {
-    console.error("Error marking attendance:", err);
-    return res.status(500).json({ success: false, error: "Server error", token });
+    console.error("Error in attendance controller:", err);
+    return res.status(500).json({ success: false, error: "Server error", token: req.body.token });
   }
 }
 
