@@ -71,19 +71,23 @@ export async function adminLoginController(req, res) {
 
     const maxAge = Number(process.env.REFRESH_TOKEN_LIFE[0]) * 24 * 60 * 60 * 1000;
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     // Store in cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: maxAge,
+      path: "/"
     });
 
     res.cookie("refreshTokenId", tokenId, {
       httpOnly: false,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: maxAge,
+      path: "/"
     });
 
     const { password: password1, ...userData } = user;
