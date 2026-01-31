@@ -25,19 +25,19 @@ async function fetchcomplaintforadmins(req, res) {
 
     // Filter by Status
     if (status && status !== "all") {
-      conditions.push(`c.status = $${paramIndex++}`);
+      conditions.push(`c.status ILIKE $${paramIndex++}`);
       values.push(status);
     }
 
     // Filter by Priority
     if (priority && priority !== "all") {
-      conditions.push(`c.priority = $${paramIndex++}`);
+      conditions.push(`c.priority ILIKE $${paramIndex++}`);
       values.push(priority);
     }
 
     // Filter by Category
     if (category && category !== "all") {
-      conditions.push(`c.category = $${paramIndex++}`);
+      conditions.push(`c.category ILIKE $${paramIndex++}`);
       values.push(category);
     }
 
