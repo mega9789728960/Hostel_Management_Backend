@@ -52,6 +52,16 @@ async function logout(req, res) {
       secure: true,
       sameSite: "none",
     });
+    res.clearCookie("refreshTokenId", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+    });
+    res.clearCookie("role", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+    });
 
     // 5️⃣ Send success response
     return res.json({

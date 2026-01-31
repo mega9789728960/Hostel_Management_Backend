@@ -23,6 +23,16 @@ async function studentLogout(req, res) {
             secure: true,
             sameSite: "none",
         });
+        res.clearCookie("refreshTokenId", {
+            httpOnly: false,
+            secure: true,
+            sameSite: "none",
+        });
+        res.clearCookie("role", {
+            httpOnly: false,
+            secure: true,
+            sameSite: "none",
+        });
 
         if (refreshToken) {
             const result = await pool.query("DELETE FROM refreshtokens WHERE tokens = $1 AND role = 'student' RETURNING id, user_id", [refreshToken]);
