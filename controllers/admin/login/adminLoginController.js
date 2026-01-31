@@ -71,23 +71,19 @@ export async function adminLoginController(req, res) {
 
     const maxAge = Number(process.env.REFRESH_TOKEN_LIFE[0]) * 24 * 60 * 60 * 1000;
 
-    const isProduction = process.env.NODE_ENV === "production";
-
     // Store in cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: maxAge,
-      path: "/"
     });
 
     res.cookie("refreshTokenId", tokenId, {
       httpOnly: false,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: maxAge,
-      path: "/"
     });
 
     const { password: password1, ...userData } = user;
@@ -100,6 +96,7 @@ export async function adminLoginController(req, res) {
       token,
       role: "admin",
       data: userData,
+      refreshtokenId: tokenId,
     });
   } catch (err) {
     console.error("Admin login error:", err);

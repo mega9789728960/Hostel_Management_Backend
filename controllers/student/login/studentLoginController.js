@@ -55,23 +55,19 @@ export async function studentLoginController(req, res) {
 
 
     const maxAge = Number(process.env.REFRESH_TOKEN_LIFE[0]) * 24 * 60 * 60 * 1000;
-    const isProduction = process.env.NODE_ENV === "production";
-
     // Store in cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: maxAge,
-      path: "/"
     });
 
     res.cookie("refreshTokenId", refreshtokenId, {
       httpOnly: false,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: maxAge,
-      path: "/"
     });
 
     return res.status(200).json({
@@ -80,6 +76,7 @@ export async function studentLoginController(req, res) {
       token,
       role: "student",
       data: userData,
+      refreshtokenId: refreshtokenId,
     });
   } catch (err) {
     console.error("Student login error:", err);
