@@ -54,6 +54,11 @@ async function generateauthtokenforadmin(req, res) {
         maxAge: 2 * 60 * 60 * 1000, // 2 hours
       });
 
+      await pool.query(
+        "UPDATE refreshtokens SET recent_authtoken_issued_time = NOW() WHERE id = $1",
+        [tokenData.id]
+      );
+
       return res.json({ token, data: userData });
     }
   } catch (err) {

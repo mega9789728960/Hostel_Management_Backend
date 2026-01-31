@@ -32,7 +32,7 @@ async function removesession(req, res) {
       if (email) {
         // Key: revoked_token:{id} (where id is refreshtokens table PK)
         // Value: JSON string with user info
-        await redis.set(`revoked_token:${id}`, JSON.stringify({ user_id: userid, email, role }), { ex: 7 * 24 * 60 * 60 });
+        await redis.set(`revoked_token:${id}`, JSON.stringify({ user_id: userid, email, role }), { ex: parseInt(process.env.TOKENLIFE) * 60 });
       }
     }
 
