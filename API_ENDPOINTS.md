@@ -1,72 +1,382 @@
 # API Endpoints Documentation
 
-This document outlines the API endpoints for the Hostel Management System Backend.
+This document outlines the API endpoints for the Hostel Management System Backend, including JSON examples for inputs and outputs.
 
 ## 👑 Admin Endpoints
 
 Base URL: `/admin`
 
 ### Authentication
-| Endpoint | Method | Path | Inputs | Description |
-|---|---|---|---|---|
-| Admin Login | POST | `/adminslogin` | `email`, `password`, `deviceInfo` | Login for administrators. |
-| Admin Logout | POST | `/logout` | (Cookie/Auth) | Logout administrator. |
+
+#### Admin Login
+**Method:** POST  
+**Path:** `/adminslogin`  
+**Description:** Authenticate an administrator.
+
+**Input:**
+```json
+{
+  "email": "admin@college.edu",
+  "password": "securepassword123",
+  "deviceInfo": "Chrome on Windows 10"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Admin login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR...",
+  "role": "admin",
+  "data": {
+    "id": 1,
+    "email": "admin@college.edu",
+    "name": "Chief Warden"
+  },
+  "refreshtokenId": 101
+}
+```
+
+#### Admin Logout
+**Method:** POST  
+**Path:** `/logout`  
+**Description:** Logout the administrator.
+
+**Input:**
+```json
+{}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
 
 ### Students Management
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Fetch Students | POST | `/fetchstudents` | `department` (opt), `academic_year` (opt), `status` (opt), `id` (opt), `page`, `limit` | Fetch list of students with pagination and filters. |
-| Update Student | POST | `/studentupdate` | `id`, `name`, `department`, `academic_year`, `registration_number`, `father_guardian_name`, `dob`, `blood_group`, `student_contact_number`, `parent_guardian_contact_number`, `address`, `roll_number`, `room_number`, `profile_photo` | Update student details. |
-| Edit Student Details | POST | `/editstudentsdetails` | `id`, `...data` | Edit specific student details (generic). |
-| Approve Student | PUT | `/approve/:id` | `id` (param) | Approve a student registration. |
-| Reject Student | PUT | `/adminreject/:id` | `id` (param), `reason` | Reject a student registration. |
+
+#### Fetch Students
+**Method:** POST  
+**Path:** `/fetchstudents`  
+**Description:** Fetch a list of students with optional filters.
+
+**Input:**
+```json
+{
+  "page": 1,
+  "limit": 10,
+  "department": "CSE",
+  "academic_year": "2024",
+  "status": "true" 
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "page": 1,
+  "limit": 10,
+  "fetched": 10,
+  "hasMore": true,
+  "students": [
+    {
+      "id": 10,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "registration_number": "REG2024001",
+      "department": "CSE",
+      "academic_year": "2024",
+      "status": true
+    }
+  ]
+}
+```
+
+#### Update Student Details
+**Method:** POST  
+**Path:** `/studentupdate`  
+**Description:** Update specific fields of a student's profile.
+
+**Input:**
+```json
+{
+  "id": 15,
+  "name": "Jane Doe",
+  "student_contact_number": "9876543210",
+  "address": "123 New Hostel Block",
+  "token": "current_session_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 15,
+    "name": "Jane Doe",
+    "student_contact_number": "9876543210",
+    "address": "123 New Hostel Block"
+  },
+  "token": "current_session_token"
+}
+```
+
+#### Approve Student
+**Method:** PUT  
+**Path:** `/approve/:id`  
+**Description:** Approve a student's pending registration.
+
+**Input:**
+*(No Body, ID in URL)*
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Student approved successfully"
+}
+```
+
+#### Reject Student
+**Method:** PUT  
+**Path:** `/adminreject/:id`  
+**Description:** Reject a student's pending registration.
+
+**Input:**
+```json
+{
+  "reason": "Invalid documents provided",
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Student rejected",
+  "token": "admin_token"
+}
+```
 
 ### Attendance
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Show Attendance | POST | `/showattends` | `date`, `status`, `department`, `academic_year`, `registration_number`, `page`, `limit` | Fetch attendance records. |
-| Change Attendance | POST | `/changeattendanceforadmin` | `attendance_id`, `update`, `date`, `...data` | Modify attendance record. |
-| Export Attendance | POST | `/exportattendance` | `from` (date), `to` (date), `email`, `delete1` (bool) | Export attendance to CSV/Email. |
+
+#### Show Attendance
+**Method:** POST  
+**Path:** `/showattends`  
+**Description:** Fetch attendance records for students.
+
+**Input:**
+```json
+{
+  "date": "2024-02-01",
+  "department": "CSE",
+  "status": "Present",
+  "page": 1,
+  "limit": 20,
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "student_id": 101,
+      "name": "Alice",
+      "attendance_status": "Present",
+      "date": "2024-02-01"
+    }
+  ],
+  "total": 50,
+  "page": 1,
+  "token": "admin_token"
+}
+```
 
 ### Complaints
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Fetch Complaints | POST | `/fetchcomplaintforadmins` | Filters (likely `status`, `category`) | Fetch complaints. |
-| Resolve Complaint | POST | `/resolvecomplaints` | `complaint_id` | Mark complaint as resolved. |
-| Change Status | POST | `/complaintstatuschangeforadmin` | `complaint_id`, `status` | Update complaint status. |
 
-### Departments
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Add Department | POST | `/adddepartments` | `department` | Create a new department. |
-| Edit Department | POST | `/editdepartment` | `oldDepartment`, `newDepartment` | Rename a department. |
-| Delete Department | POST | `/deletedepartment` | `department_id` | Remove a department. |
+#### Fetch Complaints
+**Method:** POST  
+**Path:** `/fetchcomplaintforadmins`  
+**Description:** Fetch student complaints with filters.
+
+**Input:**
+```json
+{
+  "status": "pending",
+  "priority": "high",
+  "page": 1,
+  "limit": 10,
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 5,
+      "title": "Water Leakage",
+      "description": "Tap leaking in room 302",
+      "student_name": "Bob",
+      "priority": "high",
+      "status": "pending"
+    }
+  ],
+  "pagination": {
+    "total": 5,
+    "totalPages": 1
+  },
+  "token": "admin_token"
+}
+```
+
+#### Resolve Complaint
+**Method:** POST  
+**Path:** `/resolvecomplaints`  
+**Description:** Mark a complaint as resolved.
+
+**Input:**
+```json
+{
+  "complaint_id": 5,
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Complaint resolved",
+  "token": "admin_token"
+}
+```
 
 ### Announcements
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Push Announcement | POST | `/pushannocement` | `title`, `message`, `priority`, `target`, `scheduled_date` | Create/Schedule announcement. |
-| Fetch Announcements | POST | `/fetchannocementforadmin` | `page`, `limit` | List announcements. |
-| Edit Announcement | POST | `/editannouncementforadmin` | `announcement_id`, `...data` | Update announcement. |
-| Delete Announcement | POST | `/deleteannounce` | `announcement_id` | Delete announcement. |
+
+#### Push Announcement
+**Method:** POST  
+**Path:** `/pushannocement`  
+**Description:** Create and broadcast a new announcement.
+
+**Input:**
+```json
+{
+  "title": "Holiday Notice",
+  "message": "Hostel closed for Pongal.",
+  "priority": "high",
+  "target": "all",
+  "scheduled_date": "2024-01-14",
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Announcement created successfully",
+  "token": "admin_token"
+}
+```
+
+#### Fetch Announcements
+**Method:** POST  
+**Path:** `/fetchannocementforadmin`  
+**Description:** List all announcements.
+
+**Input:**
+```json
+{
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "announcements": [
+    {
+      "id": 1,
+      "title": "Holiday Notice",
+      "message": "Hostel closed for Pongal."
+    }
+  ],
+  "token": "admin_token"
+}
+```
 
 ### Mess Bill
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Create Monthly Bill | POST | `/create` | `month_year`, `mess_fee_per_day`, `veg_extra_per_day`, `nonveg_extra_per_day` | Initialize monthly bill (messbillpush). |
-| Show Calculations | POST | `/show` | `year` | Fetch monthly calculation data. |
-| Update Calculation | POST | `/update` | `base_id`, `years_data`, `...fields` | Update cost parameters. |
-| Update Student Bill | POST | `/upadatemessbill` | `id`, `...data` | Update specific student bill. |
-| Fetch Bills (New) | POST | `/fetchstudentsmessbillnew` | `month_year`, `department`, `academic_year`, `page`, `limit` | Fetch student bills with status. |
-| Show Bill to All | POST | `/showmessbilltoall` | `month_year` | Toggle visibility of bills. |
-| Update Verified | POST | `/update-verified-status` | `ids` (array), `verified` (bool) | Verify payments/bills. |
-| Get Bill Status | POST | `/getmessbillstatus` | `month_year` | Check status of bill generation. |
-| Fetch Paid/Unpaid | POST | `/fetch-paid-unpaid` | `month_year`, `status`, `department`, `year` | Statistics/List of paid/unpaid. |
 
-### Promotion
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Promote Students | POST | `/promotion` | `email`, `isdeletefinalyear` | Promote students to next year. |
+#### Create Monthly Bill
+**Method:** POST  
+**Path:** `/create`  
+**Description:** Initialize mess bill parameters for a month.
+
+**Input:**
+```json
+{
+  "month_year": "02-2024",
+  "mess_fee_per_day": 100,
+  "veg_extra_per_day": 0,
+  "nonveg_extra_per_day": 50,
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Monthly bill initialized",
+  "token": "admin_token"
+}
+```
+
+#### Fetch Student Mess Bills (New)
+**Method:** POST  
+**Path:** `/fetchstudentsmessbillnew`  
+**Description:** Fetch generated bills for students.
+
+**Input:**
+```json
+{
+  "month_year": "02-2024",
+  "department": "CSE",
+  "academic_year": "2024",
+  "page": 1,
+  "limit": 10,
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "message": "Mess bill data fetched successfully.",
+  "count": 10,
+  "data": [
+    {
+      "student_id": 55,
+      "student_name": "Charlie",
+      "total_amount": 3500,
+      "status": "unpaid"
+    }
+  ]
+}
+```
 
 ---
 
@@ -74,69 +384,194 @@ Base URL: `/admin`
 
 Base URL: `/students`
 
-### Authentication & Profile
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Student Login | POST | `/studentslogin` | `email`, `password`, `deviceInfo` | Student login. |
-| Student Logout | POST | `/logout` | `user_id` (validation) | Student logout. |
-| Register | POST | `/register` | `name`, `email`, `password`, `department`, `year`, ... | Student registration. |
-| Email Verify | POST | `/emailverify` | `email`, `code` | Verify email code. |
-| Send Code | POST | `/sendcode` | `email` | Send verification code. |
-| Fetch Profile Stats | POST | `/stats` | `student_id` | Get student dashboard stats. |
+### Authentication
+
+#### Register
+**Method:** POST  
+**Path:** `/register`  
+**Description:** Register a new student account.
+
+**Input:**
+```json
+{
+  "name": "New Student",
+  "email": "student@college.edu",
+  "password": "securePass",
+  "registration_number": "REG2024999",
+  "department": "ECE",
+  "academic_year": "2024",
+  "student_contact_number": "9988776655",
+  "parent_guardian_contact_number": "8877665544",
+  "token": "email_verification_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "User registered successfully",
+  "user": {
+    "id": 200,
+    "email": "student@college.edu",
+    "name": "New Student"
+  }
+}
+```
+
+#### Student Login
+**Method:** POST  
+**Path:** `/studentslogin`  
+**Description:** Authenticate a student.
+
+**Input:**
+```json
+{
+  "email": "student@college.edu",
+  "password": "securePass",
+  "deviceInfo": "iPhone 13 Safari"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Student login successful",
+  "token": "ey...",
+  "role": "student",
+  "refreshtokenId": 505,
+  "data": {
+    "id": 200,
+    "name": "New Student",
+    "email": "student@college.edu"
+  }
+}
+```
 
 ### Attendance
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Mark Attendance | POST | `/attendance` | `id`, `lat`, `lng` | Mark present. |
-| Mark Absent | POST | `/absent` | `id`, `lat`, `lng` | Mark absent (if applicable) or check constraint. |
-| Show Attendance | POST | `/showattendance` | `id`, `date`, `month` | View attendance history. |
+
+#### Mark Attendance
+**Method:** POST  
+**Path:** `/attendance`  
+**Description:** Mark daily attendance with geolocation.
+
+**Input:**
+```json
+{
+  "id": 200,
+  "lat": 12.9716,
+  "lng": 77.5946,
+  "token": "student_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Attendance marked",
+  "token": "student_token"
+}
+```
 
 ### Complaints
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Register Complaint | POST | `/registercomplaints` | `id`, `title`, `description`, `category`, `priority` | Submit a complaint. |
-| Fetch Complaints | POST | `/fetchcomplaintsforstudents` | `id` | View my complaints. |
-| Edit Complaint | PUT | `/editcomplaints` | `complaint_id`, `title`, `description`, `category`, `priority` | Update complaint. |
 
-### Notifications
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Fetch Notifications | POST | `/fetchnotificationforstudents` | `student_id` | Get notifications. |
-| Dismiss Notification| POST | `/dismissnotificationforstudent`| `notification_id` | Mark notification read/dismissed. |
+#### Register Complaint
+**Method:** POST  
+**Path:** `/registercomplaints`  
+**Description:** Submit a new complaint.
 
-### Payments & Mess Bill
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Show Bill By ID | POST | `/showmessbillbyid1` | `student_id` | Get my mess bill. |
-| Payment History | POST | `/fetch-transaction-history` | `student_id`, `month`, `year`, `page`, `limit` | View payment history. |
-| Create Order | POST | `/create-order` | `student_id`, `year_month`, `student_name`, `student_email`, `amount` | Initiate payment (DB). |
-| Create Order (Direct) | POST | `/create-order1` | `student_id`, `student_name`, `student_email`, `student_phone`, `amount` | Initiate payment (Direct PG). |
-| Verify Payment | POST | `/verify-payment` | `orderId` | Verify payment status from PG. |
+**Input:**
+```json
+{
+  "id": 200,
+  "title": "Wi-Fi Issue",
+  "description": "No internet signal in room 101",
+  "category": "Maintenance",
+  "priority": "medium",
+  "token": "student_token"
+}
+```
 
-### General
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Fetch Departments | GET | `/fetchdepartments` | (None) | List available departments. |
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Complaint registered",
+  "token": "student_token"
+}
+```
+
+### Payments
+
+#### Create Order
+**Method:** POST  
+**Path:** `/create-order`  
+**Description:** Initiate a payment order.
+
+**Input:**
+```json
+{
+  "student_id": 200,
+  "year_month": "02-2024",
+  "student_name": "New Student",
+  "student_email": "student@college.edu",
+  "amount": 3500
+}
+```
+
+**Output:**
+```json
+{
+  "payment_session_id": "session_123456",
+  "order_id": "order_987654"
+}
+```
 
 ---
 
 ## 🔐 Session Management
 
-| Endpoint | Method | Path | Inputs | Description |
-|---|---|---|---|---|
-| Generate Token (Student) | POST | `/students/generateauthtokenforstudent` | `refreshtokenId` (in body or cookie) | Refresh access token for students. |
-| Generate Token (Admin) | POST | `/admin/generateauthtokenforadmin` | `refreshtokenId` | Refresh access token for admins. |
-| Get Session | POST | `/admin/get-session` or `/students/get-session` | `userid`, `role` | Validate and retrieve session details. |
-| Remove Session | POST | `/admin/remove-session` or `/students/remove-session` | `sessionid`, `userid`, `role` | Invalidate a session. |
+#### Generate Token (Student)
+**Method:** POST  
+**Path:** `/students/generateauthtokenforstudent`  
+**Description:** Refresh access token using refresh token.
 
----
+**Input:**
+```json
+{
+  "refreshtokenId": 505
+}
+```
+*(Or passed via cookies)*
 
-## 🔑 Account Recovery (Forgot Password)
-Base URL: `/students` (Usually shared or specific prefix)
+**Output:**
+```json
+{
+  "success": true,
+  "token": "new_access_token_ey...",
+  "role": "student"
+}
+```
 
-| Endpoint | Method | Path | Inputs (Body) | Description |
-|---|---|---|---|---|
-| Email Push | POST | `/forgotpasswordemailpush` | `email` | Initiate password reset. |
-| Send Code | POST | `/forgotpasswordsendcode` | `email` | Send reset code. |
-| Verify Code | POST | `/veriycodeforgot` | `email`, `code` | Verify reset code. |
-| Change Password | POST | `/changepassword` | `email`, `password` | Set new password. |
+#### Remove Session (Logout Remote)
+**Method:** POST  
+**Path:** `/admin/remove-session`  
+**Description:** Invalidate a specific session.
+
+**Input:**
+```json
+{
+  "sessionid": 101,
+  "userid": 1,
+  "role": "admin"
+}
+```
+
+**Output:**
+```json
+{
+  "message": "Session removed successfully"
+}
+```
