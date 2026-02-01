@@ -11,12 +11,12 @@ async function removesession(req, res) {
 
     const result = await pool.query(
       `DELETE FROM refreshtokens 
-       WHERE id = $1 AND user_id = $2 AND role = $3 RETURNING id, user_id, tokens`,
+       WHERE id = $1 AND user_id = $2 AND role = $3 RETURNING id, user_id, tokens, recent_authtoken_issued_time`,
       [sessionid, userid, role]
     );
 
     if (result.rowCount !== 0) {
-      const { id, user_id, tokens } = result.rows[0];
+      const { id, user_id, tokens, recent_authtoken_issued_time } = result.rows[0];
 
       // Fetch email to store in Redis
       let email;
@@ -29,10 +29,15 @@ async function removesession(req, res) {
         if (u.rows.length) email = u.rows[0].email;
       }
 
-      if (email) {
-        // Key: revoked_token:{id} (where id is refreshtokens table PK)
-        // Value: JSON string with user info
-        await redis.set(`revoked_token:${id}`, JSON.stringify({ user_id: userid, email, role }), { ex: parseInt(process.env.TOKENLIFE) * 60 });
+      if (email && recent_authtoken_issued_time) {
+        const issuedTime = new Date(recent_authtoken_issued_time).getTime();
+        const now = Date.now();
+        // Check if recent_authtoken_issued_time + 20 minutes >= now
+        if (issuedTime + 20 * 60 * 1000 >= now) {
+          // Key: revoked_token:{id} (where id is refreshtokens table PK)
+          // Value: JSON string with user info
+          await redis.set(`revoked_token:${id}`, JSON.stringify({ user_id: userid, email, role }), { ex: parseInt(process.env.TOKENLIFE) * 60 });
+        }
       }
     }
 
