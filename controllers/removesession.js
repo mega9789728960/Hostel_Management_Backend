@@ -32,11 +32,12 @@ async function removesession(req, res) {
       if (email && recent_authtoken_issued_time) {
         const issuedTime = new Date(recent_authtoken_issued_time).getTime();
         const now = Date.now();
-        // Check if recent_authtoken_issued_time + 20 minutes >= now
-        if (issuedTime + 20 * 60 * 1000 >= now) {
+        const tokenLifeMinutes = parseInt(process.env.TOKENLIFE);
+        // Check if recent_authtoken_issued_time + TOKENLIFE minutes >= now
+        if (issuedTime + tokenLifeMinutes * 60 * 1000 >= now) {
           // Key: revoked_token:{id} (where id is refreshtokens table PK)
           // Value: JSON string with user info
-          await redis.set(`revoked_token:${id}`, JSON.stringify({ user_id: userid, email, role }), { ex: parseInt(process.env.TOKENLIFE) * 60 });
+          await redis.set(`revoked_token:${id}`, JSON.stringify({ user_id: userid, email, role }), { ex: tokenLifeMinutes * 60 });
         }
       }
     }
