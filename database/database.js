@@ -5,11 +5,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const pool = new Pool({
-  user: "postgres.fcwajthkxusymctcsmhx",   // ✅ pooler user
-  host: "aws-1-ap-southeast-1.pooler.supabase.com",
-  database: "postgres",
-  password: "KQ1oXjMaLnZjs0QM",      // ✅ from env
-  port: 5432,                             // ✅ 5432 for shared pooler
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
   ssl: { rejectUnauthorized: false },
   max: 10,
   idleTimeoutMillis: 30000,
