@@ -1,6 +1,7 @@
 import express from "express";
 import complaintstatuschangeforadmin from "../../../controllers/admin/complaint/complaintstatuschangeforadmin.js";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 const complaintstatuschangeforadminrouter = express.Router();
-complaintstatuschangeforadminrouter.use("/complaintstatuschangeforadmin",authorisation,complaintstatuschangeforadmin);
+complaintstatuschangeforadminrouter.use("/complaintstatuschangeforadmin",adminauth,complaintstatuschangeforadmin);
 export default complaintstatuschangeforadminrouter;
+

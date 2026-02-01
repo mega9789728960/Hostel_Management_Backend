@@ -1,6 +1,6 @@
 import express from "express";
 import fetchcomplaintforadmins from "../../../controllers/admin/complaint/fetchcomplaintforadmins.js";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 const fetchcomplaintforadminrouter = express.Router();
-fetchcomplaintforadminrouter.use("/fetchcomplaintforadmins",authorisation,fetchcomplaintforadmins);
+fetchcomplaintforadminrouter.use("/fetchcomplaintforadmins",adminauth,fetchcomplaintforadmins);
 export default fetchcomplaintforadminrouter;

@@ -1,6 +1,7 @@
 import express from "express";
 import fetchstudent from "../../../controllers/admin/student/fetchstudents.js";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 const fetchstudentrouter = express.Router();
-fetchstudentrouter.post("/fetchstudents", authorisation,fetchstudent);
+fetchstudentrouter.post("/fetchstudents", adminauth,fetchstudent);
 export default fetchstudentrouter
+

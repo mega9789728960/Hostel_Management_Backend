@@ -1,10 +1,11 @@
 import express from 'express';
 import { updateShowFlagByMonthYear } from '../../../controllers/admin/mesbill/showmessbilltoall.js';
 
-import authorisation from '../../../controllers/authorisation.js';
+import adminauth from '../../../controllers/adminauth.js';
 
 const showmessbilltoall = express.Router();
 
-showmessbilltoall.post('/showmessbilltoall', authorisation, updateShowFlagByMonthYear);
+showmessbilltoall.post('/showmessbilltoall', adminauth, updateShowFlagByMonthYear);
 
 export default showmessbilltoall;
+

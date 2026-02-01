@@ -1,6 +1,6 @@
 import express from "express";
 import pushannocement from "../../../controllers/admin/announcement/pushannocement.js";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 const pushannocementrouter = express.Router();
-pushannocementrouter.use("/pushannocement",authorisation,pushannocement);
+pushannocementrouter.use("/pushannocement",adminauth,pushannocement);
 export default pushannocementrouter

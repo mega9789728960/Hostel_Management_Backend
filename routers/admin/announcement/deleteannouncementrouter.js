@@ -1,6 +1,6 @@
 import express from "express";
 import deleteannouncement from "../../../controllers/admin/announcement/deleteannouncement.js";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 const deleteannouncementrouter = express.Router();
-deleteannouncementrouter.use("/deleteannounce",authorisation,deleteannouncement);
+deleteannouncementrouter.use("/deleteannounce",adminauth,deleteannouncement);
 export default deleteannouncementrouter

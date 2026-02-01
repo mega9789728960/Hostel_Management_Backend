@@ -1,6 +1,6 @@
 import express from "express";
 import editannouncementforadmin from "../../../controllers/admin/announcement/editannouncement.js";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 const editannouncementforadminrouter = express.Router();
-editannouncementforadminrouter.use("/editannouncementforadmin",authorisation,editannouncementforadmin);
+editannouncementforadminrouter.use("/editannouncementforadmin",adminauth,editannouncementforadmin);
 export default editannouncementforadminrouter;

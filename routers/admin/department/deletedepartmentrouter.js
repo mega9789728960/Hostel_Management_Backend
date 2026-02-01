@@ -1,6 +1,6 @@
 import express from "express";
 import deletedepartment from "../../../controllers/admin/departments/deletedepartment.js";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 const deletedepartmentrouter = express.Router();
-deletedepartmentrouter.use("/deletedepartment",authorisation,deletedepartment);
+deletedepartmentrouter.use("/deletedepartment",adminauth,deletedepartment);
 export default deletedepartmentrouter

@@ -1,6 +1,6 @@
 import editstudentsdetails from "../../../controllers/student/details/editstudentsdetails.js";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 import express from "express";
 const editstudentsdetailsrouter = express.Router();
-editstudentsdetailsrouter.use("/editstudentsdetails",authorisation,editstudentsdetails);
+editstudentsdetailsrouter.use("/editstudentsdetails",adminauth,editstudentsdetails);
 export default editstudentsdetailsrouter;

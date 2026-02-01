@@ -1,6 +1,6 @@
 import express from "express";
-import authorisation from "../../../controllers/authorisation.js";
+import adminauth from "../../../controllers/adminauth.js";
 import studentsupdate from "../../../controllers/admin/student/studentsupdate.js";
 const studentsupdaterouter = express.Router();
-studentsupdaterouter.use("/studentupdate",authorisation,studentsupdate);
+studentsupdaterouter.use("/studentupdate",adminauth,studentsupdate);
 export default studentsupdaterouter

@@ -2,11 +2,11 @@
 import express from 'express';
 import { updateMessBill } from '../../../controllers/admin/mesbill/updatestudentsmessbill.js'; // adjust path
 
-import authorisation from '../../../controllers/authorisation.js';
+import adminauth from '../../../controllers/adminauth.js';
 
 const updatemessbill = express.Router();
 
 // Route to create monthly calculation
-updatemessbill.post('/upadatemessbill', authorisation, updateMessBill);
+updatemessbill.post('/upadatemessbill', adminauth, updateMessBill);
 
 export default updatemessbill;   
