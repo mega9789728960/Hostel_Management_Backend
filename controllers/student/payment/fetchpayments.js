@@ -10,35 +10,36 @@ const fetchStudentPayments = async (req, res) => {
 
         let query = `
       SELECT 
-        id,
-        order_id,
-        order_amount,
-        payment_amount,
-        payment_status,
-        payment_time,
-        payment_method,
-        gateway_payment_id,
-        mess_bill_for_students_id
-      FROM public.payments
-      WHERE customer_id = $1
+        p.id,
+        p.order_id,
+        p.order_amount,
+        p.payment_amount,
+        p.payment_status,
+        p.payment_time,
+        p.payment_method,
+        p.gateway_payment_id,
+        p.mess_bill_for_students_id
+      FROM public.payments p
+      JOIN public.mess_bill_for_students m ON p.mess_bill_for_students_id = m.id
+      WHERE p.customer_id = $1 AND m.show = true
     `;
 
         const queryParams = [student_id];
         let paramCounter = 2;
 
         if (month) {
-            query += ` AND EXTRACT(MONTH FROM payment_time) = $${paramCounter}`;
+            query += ` AND EXTRACT(MONTH FROM p.payment_time) = $${paramCounter}`;
             queryParams.push(month);
             paramCounter++;
         }
 
         if (year) {
-            query += ` AND EXTRACT(YEAR FROM payment_time) = $${paramCounter}`;
+            query += ` AND EXTRACT(YEAR FROM p.payment_time) = $${paramCounter}`;
             queryParams.push(year);
             paramCounter++;
         }
 
-        query += ` ORDER BY payment_time DESC`;
+        query += ` ORDER BY p.payment_time DESC`;
 
         // Pagination
         const offset = (page - 1) * limit;
@@ -48,18 +49,23 @@ const fetchStudentPayments = async (req, res) => {
         const result = await pool.query(query, queryParams);
 
         // Count for pagination
-        let countQuery = `SELECT COUNT(*) FROM public.payments WHERE customer_id = $1`;
+        let countQuery = `
+            SELECT COUNT(*) 
+            FROM public.payments p
+            JOIN public.mess_bill_for_students m ON p.mess_bill_for_students_id = m.id
+            WHERE p.customer_id = $1 AND m.show = true
+        `;
         const countParams = [student_id];
         let countParamCounter = 2;
 
         if (month) {
-            countQuery += ` AND EXTRACT(MONTH FROM payment_time) = $${countParamCounter}`;
+            countQuery += ` AND EXTRACT(MONTH FROM p.payment_time) = $${countParamCounter}`;
             countParams.push(month);
             countParamCounter++;
         }
 
         if (year) {
-            countQuery += ` AND EXTRACT(YEAR FROM payment_time) = $${countParamCounter}`;
+            countQuery += ` AND EXTRACT(YEAR FROM p.payment_time) = $${countParamCounter}`;
             countParams.push(year);
             countParamCounter++;
         }
