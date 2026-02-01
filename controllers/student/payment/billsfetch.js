@@ -21,7 +21,7 @@ const showPaidMessBillsByStudentId = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    let whereConditions = [`mb.student_id = $1`];
+    let whereConditions = [`mb.student_id = $1`, `mb.show = true`];
     let queryParams = [student_id];
     let paramCounter = 2;
 
