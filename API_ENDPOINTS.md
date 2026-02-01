@@ -201,6 +201,30 @@ Base URL: `/admin`
 }
 ```
 
+#### Export Attendance
+**Method:** POST  
+**Path:** `/exportattendance`  
+**Description:** Export attendance data to CSV and email it.
+
+**Input:**
+```json
+{
+  "from": "2024-01-01",
+  "to": "2024-01-31",
+  "email": "admin@college.edu",
+  "delete1": false,
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Attendance exported successfully"
+}
+```
+
 ### Complaints
 
 #### Fetch Complaints
@@ -260,6 +284,95 @@ Base URL: `/admin`
   "success": true,
   "message": "Complaint resolved",
   "token": "admin_token"
+}
+```
+
+#### Change Complaint Status
+**Method:** POST  
+**Path:** `/complaintstatuschangeforadmin`  
+**Description:** Update the status of a complaint (e.g., to "In Progress").
+
+**Input:**
+```json
+{
+  "complaint_id": 5,
+  "status": "In Progress",
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Status updated successfully",
+  "token": "current_token"
+}
+```
+
+### Departments
+
+#### Add Department
+**Method:** POST  
+**Path:** `/adddepartments`  
+**Description:** Create a new department.
+
+**Input:**
+```json
+{
+  "department": "Biotechnology",
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Department created successfully"
+}
+```
+
+#### Edit Department
+**Method:** POST  
+**Path:** `/editdepartment`  
+**Description:** Rename an existing department.
+
+**Input:**
+```json
+{
+  "oldDepartment": "Biotechnology",
+  "newDepartment": "Bio-Tech",
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Department updated successfully"
+}
+```
+
+#### Delete Department
+**Method:** POST  
+**Path:** `/deletedepartment`  
+**Description:** Delete a department.
+
+**Input:**
+```json
+{
+  "department_id": 10,
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Department deleted successfully"
 }
 ```
 
@@ -378,6 +491,27 @@ Base URL: `/admin`
 }
 ```
 
+#### Show Bill to All
+**Method:** POST  
+**Path:** `/showmessbilltoall`  
+**Description:** Enable visibility of the mess bill for students for a specific month.
+
+**Input:**
+```json
+{
+  "month_year": "02-2024",
+  "token": "admin_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Mess bill is now visible to students"
+}
+```
+
 ---
 
 ## 🎓 Student Endpoints
@@ -449,6 +583,33 @@ Base URL: `/students`
 }
 ```
 
+### Profile
+
+#### My Stats
+**Method:** POST  
+**Path:** `/stats`  
+**Description:** Fetch dashboard statistics for the logged-in student.
+
+**Input:**
+```json
+{
+  "student_id": 200,
+  "token": "student_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "stats": {
+    "attendance_percentage": 85,
+    "total_complaints": 2,
+    "pending_bills": 0
+  }
+}
+```
+
 ### Attendance
 
 #### Mark Attendance
@@ -472,6 +633,33 @@ Base URL: `/students`
   "success": true,
   "message": "Attendance marked",
   "token": "student_token"
+}
+```
+
+#### Show Attendance
+**Method:** POST  
+**Path:** `/showattendance`  
+**Description:** View attendance history.
+
+**Input:**
+```json
+{
+  "id": 200,
+  "date": "2024-02-01",
+  "token": "student_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "date": "2024-02-01",
+      "status": "Present"
+    }
+  ]
 }
 ```
 
@@ -503,6 +691,83 @@ Base URL: `/students`
 }
 ```
 
+#### Fetch My Complaints
+**Method:** POST  
+**Path:** `/fetchcomplaintsforstudents`  
+**Description:** Get list of complaints submitted by the student.
+
+**Input:**
+```json
+{
+  "id": 200,
+  "token": "student_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "complaints": [
+    {
+      "id": 5,
+      "title": "Wi-Fi Issue",
+      "status": "pending"
+    }
+  ]
+}
+```
+
+### Notifications
+
+#### Fetch Notifications
+**Method:** POST  
+**Path:** `/fetchnotificationforstudents`  
+**Description:** Get notifications for the student.
+
+**Input:**
+```json
+{
+  "student_id": 200,
+  "token": "student_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "notifications": [
+    {
+      "id": 1,
+      "title": "Holiday Notice",
+      "message": "Hostel closed..."
+    }
+  ]
+}
+```
+
+#### Dismiss Notification
+**Method:** POST  
+**Path:** `/dismissnotificationforstudent`  
+**Description:** Dismiss or mark a notification as read.
+
+**Input:**
+```json
+{
+  "notification_id": 1,
+  "token": "student_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "message": "Notification dismissed"
+}
+```
+
 ### Payments
 
 #### Create Order
@@ -526,6 +791,63 @@ Base URL: `/students`
 {
   "payment_session_id": "session_123456",
   "order_id": "order_987654"
+}
+```
+
+#### Show Bill By ID
+**Method:** POST  
+**Path:** `/showmessbillbyid1`  
+**Description:** Fetch specific mess bill for the student.
+
+**Input:**
+```json
+{
+  "student_id": 200,
+  "token": "student_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "bill": {
+    "total_amount": 3500,
+    "status": "unpaid",
+    "month_year": "02-2024"
+  }
+}
+```
+
+#### Payment History
+**Method:** POST  
+**Path:** `/fetch-transaction-history`  
+**Description:** Fetch history of past transactions.
+
+**Input:**
+```json
+{
+  "student_id": 200,
+  "month": "02",
+  "year": "2024",
+  "page": 1,
+  "limit": 10,
+  "token": "student_token"
+}
+```
+
+**Output:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "order_id": "order_123",
+      "amount": 3500,
+      "payment_status": "SUCCESS",
+      "date": "2024-02-15"
+    }
+  ]
 }
 ```
 
