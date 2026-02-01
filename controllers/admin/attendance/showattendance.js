@@ -10,6 +10,10 @@ async function showattendance(req, res) {
       academic_year,
       date,
       status,
+      // Date Range Filters
+      from_date,
+      to_date,
+      specific_date,
       // Pagination (Optional)
       page = 1,
       limit = 10
@@ -24,39 +28,63 @@ async function showattendance(req, res) {
     let paramIndex = 1;
     const values = [];
 
-    // 1. Build values and conditions for the main data query
+    // --- CHECK IF THIS IS A SPECIFIC STUDENT REQUEST ---
+    const isStudentRequest = registration_number && registration_number.trim() !== "";
 
-    // Note: We need to handle parameters carefully. 
-    // We'll rebuild the query parts to ensure parameter indices are correct.
+    if (isStudentRequest) {
+      // Mandate Date Filters for Student Request
+      if (!specific_date && (!from_date || !to_date)) {
+        return res.status(400).json({
+          success: false,
+          message: "Date filters are mandatory. Provide either specific_date OR from_date and to_date.",
+          token
+        });
+      }
 
-    // Date condition for JOIN
-    if (date && date.trim() !== "") {
-      joinConditions.push(`a.date = $${paramIndex++}`);
-      values.push(new Date(date).toISOString().split("T")[0]);
+      // Add Registration Number condition
+      whereConditions.push(`s.registration_number = $${paramIndex++}`);
+      values.push(registration_number);
+
+      // Date Filtering Logic
+      if (specific_date) {
+        joinConditions.push(`a.date = $${paramIndex++}`);
+        values.push(new Date(specific_date).toISOString().split("T")[0]);
+      } else if (from_date && to_date) {
+        joinConditions.push(`a.date >= $${paramIndex++}`);
+        values.push(new Date(from_date).toISOString().split("T")[0]);
+        joinConditions.push(`a.date <= $${paramIndex++}`);
+        values.push(new Date(to_date).toISOString().split("T")[0]);
+      }
+    } else {
+      // --- GENERAL ADMIN ATTENDANCE LOGIC (Keep existing behavior) ---
+
+      // Date condition for JOIN
+      if (date && date.trim() !== "") {
+        joinConditions.push(`a.date = $${paramIndex++}`);
+        values.push(new Date(date).toISOString().split("T")[0]);
+      }
+
+      // Registration Number condition (if provided in general view, though usually not)
+      if (registration_number && registration_number.trim() !== "") {
+        whereConditions.push(`s.registration_number = $${paramIndex++}`);
+        values.push(registration_number);
+      }
     }
 
-    // Status condition for JOIN
+    // Common Filters (Department, Academic Year, Status)
     if (status && status.trim() !== "" && status !== "all") {
       joinConditions.push(`a.status = $${paramIndex++}`);
       values.push(status);
     }
 
-    // Department condition
     if (department && department.trim() !== "") {
       whereConditions.push(`s.department = $${paramIndex++}`);
       values.push(department);
     }
 
-    // Academic Year condition
     if (academic_year && academic_year.trim() !== "") {
       whereConditions.push(`s.academic_year = $${paramIndex++}`);
       values.push(academic_year);
-    }
-
-    // Registration Number condition
-    if (registration_number && registration_number.trim() !== "") {
-      whereConditions.push(`s.registration_number = $${paramIndex++}`);
-      values.push(registration_number);
     }
 
     // Construct the JOIN and WHERE strings
@@ -64,8 +92,6 @@ async function showattendance(req, res) {
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
 
     // --- COUNT QUERY ---
-    // We need a separate count query using essentially the same conditions
-    // to tell the frontend the total number of matching records.
     const countQuery = `
       SELECT COUNT(*) 
       FROM students s
@@ -74,8 +100,17 @@ async function showattendance(req, res) {
     `;
 
     // --- DATA QUERY ---
-    const dataQuery = `
-      SELECT 
+    let selectFields = "";
+    if (isStudentRequest) {
+      // Optimized selection for student profile
+      selectFields = `
+        a.id AS attendance_id,
+        a.date AS attendance_date,
+        a.status AS attendance_status
+        `;
+    } else {
+      // Full selection for admin table
+      selectFields = `
         s.id AS student_id,
         s.name,
         s.department,
@@ -93,6 +128,12 @@ async function showattendance(req, res) {
         a.status AS attendance_status,
         a.created_at AS attendance_created_at,
         a.updated_at AS attendance_updated_at
+        `;
+    }
+
+    const dataQuery = `
+      SELECT 
+        ${selectFields}
       FROM students s
       ${joinClause}
       ${whereClause}
@@ -104,7 +145,6 @@ async function showattendance(req, res) {
     const queryValues = [...values, limit, offset];
 
     // Execute queries
-    // We can run them in parallel for performance
     const [countResult, dataResult] = await Promise.all([
       pool.query(countQuery, values),
       pool.query(dataQuery, queryValues)
