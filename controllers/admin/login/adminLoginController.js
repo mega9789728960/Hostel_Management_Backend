@@ -52,14 +52,14 @@ export async function adminLoginController(req, res) {
     // Generate access token with refreshtokenId
     const token = jwt.sign(
       { id: user.id, email: user.email, role: "admin", refreshtokenId: tokenId },
-      process.env.SECRET_KEY || "mysecret",
+      process.env.SECRET_KEY,
       { expiresIn: process.env.TOKENLIFE }
     );
 
     // 2. Generate refresh token with the tokenId
     const refreshToken = jwt.sign(
       { id: user.id, email: user.email, role: "admin", refreshtokenId: tokenId },
-      process.env.SECRET_KEY || "mysecret",
+      process.env.SECRET_KEY,
       { expiresIn: process.env.REFRESH_TOKEN_LIFE }
     );
 

@@ -11,8 +11,8 @@ import { Cashfree } from "cashfree-pg";
 
 
 const cashfreeClient = new Cashfree({
-  clientId: process.env.CLIENT_ID || "TEST108360771478c4665f846cfe949877063801",
-  clientSecret: process.env.CLIENT_SECRET || "cfsk_ma_test_b560921740a233497ed2b83bf3ce4599_113f10f2",
+  clientId: process.env.APP_ID,
+  clientSecret: process.env.PAYMENT_KEY,
   env: "sandbox", // sandbox or production
 });
 function generateOrderId() {

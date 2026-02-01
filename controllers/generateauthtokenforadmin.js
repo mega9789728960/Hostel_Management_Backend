@@ -43,7 +43,7 @@ async function generateauthtokenforadmin(req, res) {
 
       const token = jwt.sign(
         { id: user.id, email: user.email, role: "admin", refreshtokenId: tokenData.id },
-        process.env.SECRET_KEY || "secret",
+        process.env.SECRET_KEY,
         { expiresIn: "2h" }
       );
 

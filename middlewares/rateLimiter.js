@@ -1,7 +1,7 @@
 import redis from '../database/redis.js';
 
-const RATE_LIMIT_WINDOW = process.env.RATE_LIMIT_WINDOW || 60; // 60 seconds
-const RATE_LIMIT_MAX_REQUESTS = process.env.RATE_LIMIT_MAX_REQUESTS || 5; // 5 requests
+const RATE_LIMIT_WINDOW = process.env.RATE_LIMIT_WINDOW; // 60 seconds
+const RATE_LIMIT_MAX_REQUESTS = process.env.RATE_LIMIT_MAX_REQUESTS; // 5 requests
 
 export const rateLimiter = async (req, res, next) => {
     try {
