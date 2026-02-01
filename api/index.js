@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import sanitizeInput from "../controllers/sanitizeInput.js";
+//import { rateLimiter } from "../middlewares/rateLimiter.js";
 
 import compression from "compression";
 import crypto from "crypto"
@@ -42,6 +43,7 @@ api.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 api.use(cookieParser());
 api.use(sanitizeInput);
+//api.use(rateLimiter);
 
 
 
