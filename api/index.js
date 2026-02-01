@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-import sanitizeInput from "../controllers/sanitizeInput.js";
+import sanitizeInput from "../middlewares/sanitizeInput.js";
 //import { rateLimiter } from "../middlewares/rateLimiter.js";
 
 import compression from "compression";

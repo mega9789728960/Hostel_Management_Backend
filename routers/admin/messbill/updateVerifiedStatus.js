@@ -1,7 +1,7 @@
 import express from "express";
 import { updateVerifiedStatus } from "../../../controllers/admin/mesbill/updateVerifiedStatus.js";
 
-import adminauth from '../../../controllers/adminauth.js';
+import adminauth from '../../../middlewares/adminauth.js';
 
 const updateVerifiedStatusrouter = express.Router();
 
@@ -9,4 +9,5 @@ const updateVerifiedStatusrouter = express.Router();
 updateVerifiedStatusrouter.post("/update-verified-status", adminauth, updateVerifiedStatus);
 
 export default updateVerifiedStatusrouter;
+
 

@@ -2,7 +2,7 @@
 import express from 'express';
 import { fetchMessBills } from '../../../controllers/admin/mesbill/fetchstudentsmessbillnew.js'; // adjust path
 
-import adminauth from '../../../controllers/adminauth.js';
+import adminauth from '../../../middlewares/adminauth.js';
 
 const fetchstudentsmessbillnew = express.Router();
 
@@ -10,3 +10,4 @@ const fetchstudentsmessbillnew = express.Router();
 fetchstudentsmessbillnew.post('/fetchstudentsmessbillnew', adminauth, fetchMessBills);
 
 export default fetchstudentsmessbillnew;   
+

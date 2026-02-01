@@ -2,7 +2,7 @@
 import express from 'express';
 import { fetchMonthlyCalculations } from '../../../controllers/admin/mesbill/messbillshow.js'; // adjust path
 
-import adminauth from '../../../controllers/adminauth.js';
+import adminauth from '../../../middlewares/adminauth.js';
 
 const messbillshow = express.Router();
 
@@ -10,3 +10,4 @@ const messbillshow = express.Router();
 messbillshow.post('/show', adminauth, fetchMonthlyCalculations);
 
 export default messbillshow;   
+

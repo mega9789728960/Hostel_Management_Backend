@@ -3,7 +3,7 @@
 import express from 'express';
 import { getMessBillStatusByMonthYear } from '../../../controllers/admin/mesbill/getmessbillstatus.js';
 
-import adminauth from '../../../controllers/adminauth.js';
+import adminauth from '../../../middlewares/adminauth.js';
 
 const getmessbillstatus = express.Router();
 
@@ -11,4 +11,5 @@ const getmessbillstatus = express.Router();
 getmessbillstatus.post('/getmessbillstatus', adminauth, getMessBillStatusByMonthYear);
 
 export default getmessbillstatus;
+
 

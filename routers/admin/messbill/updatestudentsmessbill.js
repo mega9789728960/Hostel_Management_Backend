@@ -2,7 +2,7 @@
 import express from 'express';
 import { updateMessBill } from '../../../controllers/admin/mesbill/updatestudentsmessbill.js'; // adjust path
 
-import adminauth from '../../../controllers/adminauth.js';
+import adminauth from '../../../middlewares/adminauth.js';
 
 const updatemessbill = express.Router();
 
@@ -10,3 +10,4 @@ const updatemessbill = express.Router();
 updatemessbill.post('/upadatemessbill', adminauth, updateMessBill);
 
 export default updatemessbill;   
+
