@@ -19,7 +19,9 @@ async function registration(req, res) {
       registration_number,
       roll_number,
       room_number,
-      profile_photo
+      profile_photo,
+      batch_start_year,
+      batch_end_year
     } = req.body;
 
     // ✅ Validate required fields upfront
@@ -49,30 +51,30 @@ async function registration(req, res) {
     );
 
     const token = req.body.token
-    const decode = jwt.verify(token,process.env.SECRET_KEY);
+    const decode = jwt.verify(token, process.env.SECRET_KEY);
     const step = verificationResult.rows[0].step;
     const expire = verificationResult.rows[0].entire_expire;
-    if( expire  && expire < new Date()){
-      return res.json({success:false,error:" time out"})
+    if (expire && expire < new Date()) {
+      return res.json({ success: false, error: " time out" })
     }
 
-    if(step !='4' && step!='5'){
-      return res.json({success:false,message:"you are not in correct step"});
+    if (step != '4' && step != '5') {
+      return res.json({ success: false, message: "you are not in correct step" });
     }
     const token1 = verificationResult.rows[0].token;
 
-    if(token!=token1){
-      return res.json({success:false,message:"incorrect token"});
+    if (token != token1) {
+      return res.json({ success: false, message: "incorrect token" });
 
     }
 
     const sequence = verificationResult.rows[0].sequence;
-    if(decode.sequence != sequence){
+    if (decode.sequence != sequence) {
 
-      return res.json({success:false,message:"incorrect  sequence "});
+      return res.json({ success: false, message: "incorrect  sequence " });
 
     }
-    
+
     const verificationData = verificationResult.rows[0];
 
     if (!verificationData || !verificationData.verified) {
@@ -87,9 +89,8 @@ async function registration(req, res) {
 
     // ✅ Step 3: Insert into students table (return only necessary columns)
     const insertQuery = `
-      INSERT INTO students 
-      (email, password, name, father_guardian_name, dob, blood_group, student_contact_number, parent_guardian_contact_number, address, department, academic_year, registration_number, roll_number, room_number, profile_photo) 
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) 
+      (email, password, name, father_guardian_name, dob, blood_group, student_contact_number, parent_guardian_contact_number, address, department, academic_year, registration_number, roll_number, room_number, profile_photo, batch_start_year, batch_end_year) 
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) 
       RETURNING id, email, name, registration_number, department, academic_year
     `;
 
@@ -109,9 +110,11 @@ async function registration(req, res) {
       roll_number,
       room_number,
       profile_photo,
+      batch_start_year,
+      batch_end_year,
     ]);
-  
-    await pool.query(`DELETE FROM registration_email_verification WHERE email = $1`,[email])
+
+    await pool.query(`DELETE FROM registration_email_verification WHERE email = $1`, [email])
     return res.status(201).json({
       success: true,
       message: "User registered successfully",

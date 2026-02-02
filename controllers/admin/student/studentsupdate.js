@@ -2,7 +2,7 @@ import pool from "../../../database/database.js";
 
 async function studentsupdate(req, res) {
   try {
-    const {token,
+    const { token,
       id,
       name,
       father_guardian_name,
@@ -16,7 +16,9 @@ async function studentsupdate(req, res) {
       registration_number,
       roll_number,
       room_number,
-      profile_photo
+      profile_photo,
+      batch_start_year,
+      batch_end_year
     } = req.body;
 
     const query = `
@@ -34,8 +36,10 @@ async function studentsupdate(req, res) {
         registration_number = $10,
         roll_number = $11,
         room_number = $12,
-        profile_photo = $13
-      WHERE id = $14
+        profile_photo = $13,
+        batch_start_year = $14,
+        batch_end_year = $15
+      WHERE id = $16
       RETURNING *;
     `;
 
@@ -53,19 +57,21 @@ async function studentsupdate(req, res) {
       roll_number,
       room_number,
       profile_photo,
+      batch_start_year,
+      batch_end_year,
       id
     ];
 
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Student not found",token });
+      return res.status(404).json({ success: false, message: "Student not found", token });
     }
 
-    return res.json({ success: true, data: result.rows[0] ,token});
+    return res.json({ success: true, data: result.rows[0], token });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ success: false, error: e.message,token });
+    res.status(500).json({ success: false, error: e.message, token });
   }
 }
 
