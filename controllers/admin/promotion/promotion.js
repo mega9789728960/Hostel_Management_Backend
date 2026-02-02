@@ -15,6 +15,7 @@ export const promoteStudentsController = async (req, res) => {
        🔒 ADMIN AUTH CHECK
     ======================= */
     const adminId = req.user.id;
+
     const adminResult = await client.query(
       "SELECT password FROM admins WHERE id = $1",
       [adminId]
@@ -39,16 +40,27 @@ export const promoteStudentsController = async (req, res) => {
     await client.query("BEGIN");
 
     /* =====================================================
-       1️⃣ ARCHIVE + DELETE PAYMENTS (FINAL YEAR)
+       1️⃣ ARCHIVE PAYMENTS (FINAL YEAR)
     ===================================================== */
     await client.query(`
-      INSERT INTO payments_archive
-      SELECT p.*
+      INSERT INTO payments_archive (
+        id, order_id, order_amount, order_currency, cf_payment_id,
+        payment_status, payment_amount, payment_time, bank_reference,
+        payment_method, customer_id, customer_name, customer_email,
+        customer_phone, gateway_name, gateway_payment_id,
+        gateway_order_id, gateway_settlement, raw_webhook,
+        mess_bill_for_students_id, created_at, updated_at
+      )
+      SELECT
+        p.id, p.order_id, p.order_amount, p.order_currency, p.cf_payment_id,
+        p.payment_status, p.payment_amount, p.payment_time, p.bank_reference,
+        p.payment_method, p.customer_id, p.customer_name, p.customer_email,
+        p.customer_phone, p.gateway_name, p.gateway_payment_id,
+        p.gateway_order_id, p.gateway_settlement, p.raw_webhook,
+        p.mess_bill_for_students_id, p.created_at, p.updated_at
       FROM payments p
-      JOIN mess_bill_for_students mbs
-        ON p.mess_bill_for_students_id = mbs.id
-      JOIN students s
-        ON s.id = mbs.student_id
+      JOIN mess_bill_for_students mbs ON mbs.id = p.mess_bill_for_students_id
+      JOIN students s ON s.id = mbs.student_id
       WHERE s.academic_year = '4'
     `);
 
@@ -63,11 +75,22 @@ export const promoteStudentsController = async (req, res) => {
     `);
 
     /* =====================================================
-       2️⃣ ARCHIVE + DELETE MESS BILLS
+       2️⃣ ARCHIVE MESS BILLS
     ===================================================== */
     await client.query(`
-      INSERT INTO mess_bill_for_students_archive
-      SELECT *
+      INSERT INTO mess_bill_for_students_archive (
+        id, student_id, status, latest_order_id,
+        monthly_year_data_id, monthly_base_cost_id,
+        number_of_days, isveg, veg_days, non_veg_days,
+        ispaid, paid_date, verified, show,
+        created_at, updated_at
+      )
+      SELECT
+        id, student_id, status, latest_order_id,
+        monthly_year_data_id, monthly_base_cost_id,
+        number_of_days, isveg, veg_days, non_veg_days,
+        ispaid, paid_date, verified, show,
+        created_at, updated_at
       FROM mess_bill_for_students
       WHERE student_id IN (
         SELECT id FROM students WHERE academic_year = '4'
@@ -82,7 +105,7 @@ export const promoteStudentsController = async (req, res) => {
     `);
 
     /* =====================================================
-       3️⃣ ARCHIVE + DELETE STUDENTS
+       3️⃣ ARCHIVE STUDENTS
     ===================================================== */
     await client.query(`
       INSERT INTO students_archive (
@@ -112,7 +135,7 @@ export const promoteStudentsController = async (req, res) => {
     `);
 
     /* =====================================================
-       4️⃣ PROMOTE STUDENTS (ORDER MATTERS)
+       4️⃣ PROMOTE STUDENTS (ORDER IS CRITICAL)
     ===================================================== */
     await client.query(`UPDATE students SET academic_year = '4' WHERE academic_year = '3'`);
     await client.query(`UPDATE students SET academic_year = '3' WHERE academic_year = '2'`);
