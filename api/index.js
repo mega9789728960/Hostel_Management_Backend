@@ -97,6 +97,7 @@ import logoutrouter from "../routers/admin/logout/logout.js";
 import studentLogoutRouter from "../routers/student/logout/logout.js";
 
 import paymentHistoryRouter from "../routers/student/payment/payment_history.js";
+import changePasswordRouter from "../routers/student/settings/changePasswordRouter.js";
 
 import createorderrouter from "../routers/student/payment/createorder.js";
 import messbillpush from "../routers/admin/messbill/messbillpush.js";
@@ -155,7 +156,8 @@ api.use("/students", [
   studentLogoutRouter,
   getsessionrouter,
   removesessionrouter,
-  paymentHistoryRouter
+  paymentHistoryRouter,
+  changePasswordRouter
 ]);
 
 // 👑 Admin Routes
