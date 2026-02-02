@@ -117,6 +117,7 @@ import showmessbilltoall from "../routers/admin/messbill/showmessbilltoall.js";
 import updateVerifiedStatusrouter from "../routers/admin/messbill/updateVerifiedStatus.js";
 
 import getmessbillstatus from "../routers/admin/messbill/getmessbillstatus.js";
+import getDepartmentVerificationsRouter from "../routers/admin/messbill/getDepartmentVerifications.js";
 import generateauthtokenRouter from "../routers/generateauthtokenforstudent.js";
 import generateauthtokenforadminRouter from "../routers/generateauthtokenforadmin.js";
 import fetchPaidUnpaidRouter from "../routers/admin/messbill/fetchpaidunpaidbills.js";
@@ -190,6 +191,7 @@ api.use("/admin", [
   showmessbilltoall,
   updateVerifiedStatusrouter,
   getmessbillstatus,
+  getDepartmentVerificationsRouter,
   generateauthtokenforadminRouter,
   complaintstatuschangeforadminrouter, // Added this router to the admin middleware stack
   fetchPaidUnpaidRouter,
