@@ -1,78 +1,124 @@
 import pool from "../../../database/database.js";
-import { Parser } from "json2csv";
-import nodemailer from "nodemailer";
+import bcrypt from "bcrypt";
 
-async function promotion(req, res) {
+export const promoteStudentsController = async (req, res) => {
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ success: false, error: "Admin password is required" });
+  }
+
+  const client = await pool.connect();
+
   try {
-    const { email, isdeletefinalyear,token } = req.body; // recipient email for 4th-year CSV
+    // 🔒 Verify Admin Password
+    const adminId = req.user.id;
+    const adminResult = await client.query("SELECT password FROM admins WHERE id = $1", [adminId]);
 
-    if (!email) {
-      return res.status(400).json({ success: false, error: "Recipient email is required" ,token});
+    if (adminResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Admin not found" });
     }
 
-    // -------------------- Handle 4th-year first: export CSV --------------------
-    const result4 = await pool.query("SELECT * FROM students WHERE academic_year = $1", ["4"]);
-    const data4 = result4.rows;
-
-    if (data4.length > 0) {
-      // 1️⃣ Convert to CSV
-      const parser = new Parser();
-      const csv = parser.parse(data4);
-
-      // 2️⃣ Send CSV via email
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_ID,
-          pass: process.env.PASS_KEY, // app password if 2FA enabled
-        },
-      });
-
-      const mailOptions = {
-        from: process.env.EMAIL_ID,
-        to: email,
-        subject: "4th Year Students CSV",
-        text: "Attached is the CSV file of 4th-year students before deletion.",
-        attachments: [
-          {
-            filename: `students_${new Date().getFullYear()}.csv`,
-            content: Buffer.from(csv),
-          },
-        ],
-      };
-
-      await transporter.sendMail(mailOptions);
-      console.log("CSV sent via email to", email);
-
-      // 3️⃣ Delete 4th-year students if flag is true
-      if (isdeletefinalyear) {
-        const deleteResult = await pool.query("DELETE FROM students WHERE academic_year = $1", ["4"]);
-        console.log(`${deleteResult.rowCount} 4th-year students deleted.`);
-      }
-
-    } else {
-      console.log("No 4th-year students found to export/delete.");
+    const validPassword = await bcrypt.compare(password, adminResult.rows[0].password);
+    if (!validPassword) {
+      return res.status(401).json({ success: false, error: "Incorrect password. Authorization failed." });
     }
 
-    // -------------------- Promote 3->4, 2->3, 1->2 --------------------
-    for (let year = 3; year >= 1; year--) {
-      const nextYear = (year + 1).toString();
-      const resultUpdate = await pool.query(
-        "UPDATE students SET academic_year = $1 WHERE academic_year = $2",
-        [nextYear, year.toString()]
-      );
-      console.log(`Promoted ${resultUpdate.rowCount} students from year ${year} to ${nextYear}`);
-    }
+    await client.query("BEGIN");
 
-    return res.json({
+    // 1️⃣ Archive FINAL YEAR students (academic_year = '4')
+    await client.query(`
+      INSERT INTO students_archive (
+        id,
+        name,
+        father_guardian_name,
+        dob,
+        blood_group,
+        student_contact_number,
+        parent_guardian_contact_number,
+        address,
+        department,
+        academic_year,
+        registration_number,
+        roll_number,
+        room_number,
+        profile_photo,
+        approved_by,
+        status,
+        email,
+        password,
+        batch_start_year,
+        batch_end_year,
+        created_at,
+        updated_at,
+        deleted_at
+      )
+      SELECT
+        id,
+        name,
+        father_guardian_name,
+        dob,
+        blood_group,
+        student_contact_number,
+        parent_guardian_contact_number,
+        address,
+        department,
+        academic_year,
+        registration_number,
+        roll_number,
+        room_number,
+        profile_photo,
+        approved_by,
+        status,
+        email,
+        password,
+        batch_start_year,
+        batch_end_year,
+        created_at,
+        updated_at,
+        deleted_at
+      FROM students
+      WHERE academic_year = '4'
+    `);
+
+    // 2️⃣ Remove graduated students from main table
+    await client.query(`
+      DELETE FROM students
+      WHERE academic_year = '4'
+    `);
+
+    // 3️⃣ Promote students (TOP → DOWN is CRITICAL)
+    await client.query(`
+      UPDATE students SET academic_year = '4' WHERE academic_year = '3'
+    `);
+
+    await client.query(`
+      UPDATE students SET academic_year = '3' WHERE academic_year = '2'
+    `);
+
+    await client.query(`
+      UPDATE students SET academic_year = '2' WHERE academic_year = '1'
+    `);
+
+    await client.query("COMMIT");
+
+    res.status(200).json({
       success: true,
-      message: "Promotion completed successfully. 4th-year CSV sent and deleted if applicable, other years promoted.",token
+      message: "✅ Student promotion completed successfully"
     });
 
   } catch (error) {
-    console.error("Error in promotion:", error);
-    return res.status(500).json({ success: false, error: "Internal server error",token });
-  }
-}
+    if (client) await client.query("ROLLBACK");
+    console.error("❌ Promotion failed:", error);
 
-export default promotion;
+    res.status(500).json({
+      success: false,
+      message: "Student promotion failed",
+      error: error.message
+    });
+  } finally {
+    if (client) client.release();
+  }
+};
+
+export default promoteStudentsController;
