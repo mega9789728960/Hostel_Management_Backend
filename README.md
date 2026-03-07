@@ -143,18 +143,411 @@ I have maintained detailed documentation for the API.
 *   **Format:** All endpoints accept and return JSON.
 *   A complete HTML documentation file `API_DOCUMENTATION.html` is included in the backend root for easy reference by frontend developers or third-party integrators.
 
-## 11. Challenges Faced & Solutions
+## 11. API Sequence Diagrams
+
+> Below are UML sequence diagrams mapping every API endpoint in this system. They illustrate the request lifecycle, authentication gates, and third-party integrations involved in each operation.
+
+---
+
+### 11.1 Authentication & Registration Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Backend
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Account Registration Pipeline
+        User->>+Backend: POST /students/emailpush (email)
+        Backend-->>-User: 📧 Verification email sent
+        User->>+Backend: POST /students/emailverify (email, token)
+        Backend-->>-User: ✅ Email verified
+        User->>+Backend: POST /students/sendcode (phone)
+        Backend-->>-User: 📱 OTP sent to phone
+        User->>+Backend: POST /students/register (full details)
+        Backend-->>-User: 🎓 Account created (pending approval)
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Fetch Available Departments
+        User->>+Backend: GET /students/fetchdepartments
+        Backend-->>-User: 📋 List of departments
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Student Login
+        User->>+Backend: POST /students/studentslogin (credentials)
+        Backend-->>-User: 🔑 JWT Token + Session Created
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Admin Login
+        User->>+Backend: POST /admin/adminslogin (credentials)
+        Backend-->>-User: 🔑 JWT Token + Session Created
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Token Refresh
+        User->>+Backend: POST /students/generateauthtokenforstudent
+        Backend-->>-User: 🔄 New JWT issued
+        User->>+Backend: POST /admin/generateauthtokenforadmin
+        Backend-->>-User: 🔄 New JWT issued
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Session Management
+        User->>+Backend: POST /students/get-session (token)
+        Backend-->>-User: 👤 Session data
+        User->>+Backend: POST /students/remove-session (token)
+        Backend-->>-User: 🗑️ Session destroyed
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Logout
+        User->>+Backend: POST /students/logout [Auth Required]
+        Backend-->>-User: 🔒 Token invalidated
+        User->>+Backend: POST /admin/logout
+        Backend-->>-User: 🔒 Admin session ended
+    end
+```
+
+---
+
+### 11.2 Forgot Password Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Backend
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Password Recovery Pipeline
+        User->>+Backend: POST /students/forgotpasswordemailpush (email)
+        Backend-->>-User: 📧 Reset link / OTP sent to email
+        User->>+Backend: POST /students/forgotpasswordsendcode (email)
+        Backend-->>-User: 📱 Verification code sent
+        User->>+Backend: POST /students/veriycodeforgot (email, code)
+        Backend-->>-User: ✅ Code verified — proceed to reset
+        User->>+Backend: POST /students/changepassword (email, newPassword)
+        Backend-->>-User: 🔐 Password updated successfully
+    end
+```
+
+---
+
+### 11.3 Student Attendance Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Backend
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Mark Attendance [Auth Required]
+        User->>+Backend: POST /students/attendance (date, status)
+        Backend->>Backend: Validate JWT & Student Identity
+        Backend-->>-User: ✅ Attendance recorded
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Mark Absent
+        User->>+Backend: POST /students/absent (date, reason)
+        Backend->>Backend: Validate JWT & Student Identity
+        Backend-->>-User: ✅ Absence recorded
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: View Attendance History
+        User->>+Backend: POST /students/showattendance (dateRange)
+        Backend->>Backend: Query attendance records
+        Backend-->>-User: 📊 Attendance data with statistics
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Fetch Profile & Stats
+        User->>+Backend: POST /students/stats
+        Backend->>Backend: Aggregate student metrics
+        Backend-->>-User: 📈 Profile statistics
+    end
+```
+
+---
+
+### 11.4 Complaint Management Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Backend
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Student — Complaint Lifecycle
+        User->>+Backend: POST /students/registercomplaints [Auth]
+        Note right of Backend: (category, description, priority)
+        Backend->>Backend: Insert into complaints table
+        Backend-->>-User: 🎫 Complaint ticket created
+
+        User->>+Backend: PUT /students/editcomplaints [Auth]
+        Backend-->>-User: ✏️ Complaint updated
+
+        User->>+Backend: GET /students/fetchcomplaintsforstudents [Auth]
+        Backend-->>-User: 📋 List of student's complaints
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Admin — Complaint Resolution
+        User->>+Backend: GET /admin/fetchcomplaintforadmins [Auth]
+        Backend-->>-User: 📋 All pending complaints
+
+        User->>+Backend: PUT /admin/complaintstatuschangeforadmin [Auth]
+        Note right of Backend: (complaintId, newStatus)
+        Backend-->>-User: 🔄 Status updated
+
+        User->>+Backend: PUT /admin/resolvecomplaints [Auth]
+        Backend->>Backend: Mark complaint as RESOLVED
+        Backend-->>-User: ✅ Complaint resolved
+    end
+```
+
+---
+
+### 11.5 Notifications & Announcements Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Backend
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Admin — Announcement CRUD
+        User->>+Backend: POST /admin/pushannocement [Auth]
+        Note right of Backend: (title, body, targetAudience)
+        Backend->>Backend: Broadcast to all students
+        Backend-->>-User: 📢 Announcement published
+
+        User->>+Backend: GET /admin/fetchannocementforadmin [Auth]
+        Backend-->>-User: 📋 All announcements
+
+        User->>+Backend: PUT /admin/editannouncementforadmin [Auth]
+        Backend-->>-User: ✏️ Announcement updated
+
+        User->>+Backend: DELETE /admin/deleteannounce [Auth]
+        Backend-->>-User: 🗑️ Announcement deleted
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Student — Notification Inbox
+        User->>+Backend: GET /students/fetchnotificationforstudents [Auth]
+        Backend-->>-User: 🔔 Unread notifications
+
+        User->>+Backend: POST /students/dismissnotificationforstudent [Auth]
+        Backend-->>-User: ✅ Notification dismissed
+    end
+```
+
+---
+
+### 11.6 Mess Bill Management Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Backend
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Admin — Create & Configure Mess Bills
+        User->>+Backend: POST /admin/create [Auth]
+        Note right of Backend: (month, year, perDayRate, extras)
+        Backend->>Backend: Generate monthly calculation record
+        Backend-->>-User: 📝 Monthly mess bill template created
+
+        User->>+Backend: POST /admin/show [Auth]
+        Backend-->>-User: 📋 Monthly calculation details
+
+        User->>+Backend: POST /admin/update [Auth]
+        Backend-->>-User: ✏️ Calculation parameters updated
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Admin — Push Bills to Students
+        User->>+Backend: POST /admin/upadatemessbill [Auth]
+        Note right of Backend: (month, year, studentIds)
+        Backend->>Backend: Calculate individual bills
+        Backend-->>-User: 💰 Bills pushed to student accounts
+
+        User->>+Backend: POST /admin/showmessbilltoall [Auth]
+        Backend-->>-User: 👁️ Bills made visible to students
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Admin — Monitor & Verify
+        User->>+Backend: POST /admin/fetchstudentsmessbillnew [Auth]
+        Backend-->>-User: 📊 All students' bill details
+
+        User->>+Backend: POST /admin/getmessbillstatus [Auth]
+        Backend-->>-User: 📈 Paid vs Unpaid summary
+
+        User->>+Backend: POST /admin/fetch-paid-unpaid [Auth]
+        Backend-->>-User: 💳 Paid / Unpaid student lists
+
+        User->>+Backend: POST /admin/fetch-student-mess-bills [Auth]
+        Backend-->>-User: 📄 Individual student bill records
+
+        User->>+Backend: POST /admin/get-department-verifications [Auth]
+        Backend-->>-User: ✅ Department-wise verification status
+
+        User->>+Backend: POST /admin/update-verified-status [Auth]
+        Backend-->>-User: ☑️ Verification status updated
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Student — View Own Bills
+        User->>+Backend: POST /students/showmessbillbyid1 [Auth]
+        Backend->>Backend: Fetch bills for authenticated student
+        Backend-->>-User: 💵 Personal mess bill breakdown
+    end
+```
+
+---
+
+### 11.7 Payment Flow (with Cashfree Gateway)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Backend
+    participant Cashfree
+
+    rect rgb(17, 24, 39)
+        Note over User, Cashfree: 💳 End-to-End Payment Lifecycle
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Step 1 — Initiate Payment Order
+        User->>+Backend: POST /students/create-order [Auth]
+        Note right of Backend: (student_id, amount, bill_id)
+        Backend->>Backend: Generate unique Order ID (SHA-256)
+        Backend->>+Cashfree: PGCreateOrder (order details + customer info)
+        Cashfree-->>-Backend: 🔗 payment_session_id + order_token
+        Backend-->>-User: Payment session URL returned
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Cashfree: Step 2 — Payment on Gateway
+        User->>+Cashfree: Redirect to Cashfree checkout page
+        Note right of Cashfree: UPI / Card / Net Banking
+        Cashfree-->>-User: Payment processed on gateway
+    end
+
+    rect rgb(30, 41, 59)
+        Note over Backend, Cashfree: Step 3 — Webhook Verification (Server-to-Server)
+        Cashfree->>+Backend: POST /webhook (signed payload)
+        Note right of Backend: x-webhook-signature header
+        Backend->>Backend: Verify HMAC signature with secret
+        Backend->>Backend: Check for duplicate payment_id
+        Backend->>Backend: UPDATE mess_bill SET ispaid = true
+        Backend-->>-Cashfree: 200 OK — Acknowledged
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Step 4 — Client-Side Verification (Fallback)
+        User->>+Backend: POST /students/verify-payment (orderId)
+        Backend->>+Cashfree: PGOrderFetchPayments (orderId)
+        Cashfree-->>-Backend: Payment status array
+        Backend->>Backend: Check if any payment has status SUCCESS
+        Backend-->>-User: ✅ Payment confirmed / ❌ Payment failed
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Step 5 — Transaction History
+        User->>+Backend: POST /students/fetch-transaction-history [Auth]
+        Backend->>Backend: Query payments table for student
+        Backend-->>-User: 🧾 Complete payment history
+    end
+```
+
+---
+
+### 11.8 Admin Operations Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Backend
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Student Account Management
+        User->>+Backend: POST /admin/fetchstudents [Auth]
+        Backend-->>-User: 📋 All registered students
+
+        User->>+Backend: PUT /admin/approve/:id [Auth]
+        Backend->>Backend: Activate student account
+        Backend-->>-User: ✅ Student approved
+
+        User->>+Backend: PUT /admin/adminreject/:id [Auth]
+        Backend->>Backend: Reject / deactivate account
+        Backend-->>-User: ❌ Student rejected
+
+        User->>+Backend: PUT /admin/editstudentsdetails [Auth]
+        Backend-->>-User: ✏️ Student details updated
+
+        User->>+Backend: POST /admin/studentupdate [Auth]
+        Backend-->>-User: 🔄 Bulk student data refreshed
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Department Management
+        User->>+Backend: POST /admin/adddepartments [Auth]
+        Backend-->>-User: ➕ Department created
+
+        User->>+Backend: PUT /admin/editdepartment [Auth]
+        Backend-->>-User: ✏️ Department updated
+
+        User->>+Backend: DELETE /admin/deletedepartment [Auth]
+        Backend-->>-User: 🗑️ Department removed
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Attendance Administration
+        User->>+Backend: POST /admin/showattends [Auth]
+        Backend-->>-User: 📊 All attendance records
+
+        User->>+Backend: PUT /admin/changeattendanceforadmin [Auth]
+        Backend-->>-User: ✏️ Attendance record modified
+
+        User->>+Backend: POST /admin/exportattendance [Auth]
+        Backend-->>-User: 📥 Attendance export (CSV/Excel)
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Student Promotion
+        User->>+Backend: POST /admin/promotion [Auth]
+        Backend->>Backend: Promote students to next year
+        Backend-->>-User: 🎓 Students promoted
+    end
+
+    rect rgb(30, 41, 59)
+        Note over User, Backend: Settings
+        User->>+Backend: POST /students/change-password [Auth]
+        Backend->>Backend: Hash new password & update DB
+        Backend-->>-User: 🔐 Password changed
+    end
+```
+
+---
+
+## 12. Challenges Faced & Solutions
 
 *   **Challenge:** Handling payment status discrepancies (e.g., user pays, but browser crashes before redirect).
     *   **Solution:** I moved the state update logic entirely to the Webhook handler. The frontend merely polls for status or waits for the user to manually refresh, but the source of truth is the server-to-server communication.
 *   **Challenge:** managing complex role-based routing on the client side.
     *   **Solution:** I implemented React Router loaders to intercept navigation events. This ensures that unauthorized users are bounced back to the login screen before they can even see a flash of the dashboard.
 
-## 12. Future Enhancements
+## 13. Future Enhancements
 
 *   **Mobile Application:** The backend is already RESTful API-first, so building a React Native mobile app would be the next logical step.
 *   **AI-Powered Insights:** Integrating AI to analyze mess consumption patterns and predict inventory requirements for the hostel kitchen.
 
-## 13. Final Notes
+## 14. Final Notes
 
 This project demonstrates my ability to build secure, scalable, and business-focused applications. It moves beyond simple tutorials into the realm of distributed systems (Redis + Postgres), financial compliance (Payment Integration), and architectural best practices (Middleware patterns, RBAC). I welcome any code review or feedback.
